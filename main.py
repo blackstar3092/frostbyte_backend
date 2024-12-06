@@ -9,6 +9,7 @@ from flask_login import current_user, login_required
 from flask import current_app
 from werkzeug.security import generate_password_hash
 import shutil
+import google.generativeai as genai
 
 
 
@@ -230,3 +231,20 @@ app.cli.add_command(custom_cli)
 if __name__ == "__main__":
     # change name for testing
     app.run(debug=True, host="0.0.0.0", port="8887")
+
+#gemini integration
+genai.configure(api_key="AIzaSyAkwGL0VcgW-zJb2XG0lDvKtW7PvhhB5S8")
+model = genai.GenerativeModel('gemini-pro')
+@app.route('/api/ai/help', methods=['POST'])
+def ai_homework_help():
+    data = request.get_json()
+    question = data.get("question", "")
+    if not question:
+        return jsonify({"error": "No question provided."}), 400
+    try:
+        response = model.generate_content(f"You are an AI expert specializing in family-friendly camping advice. Your responses are short, concise, and easy to understand. You are knowledgeable about camping in national parks, especially in tundras, deserts, valleys, mountains, and forests. You provide expert guidance on the best camping gear and brands, strategies for sourcing food in the wild, essential survival skills, and practical tips and tricks for a safe and enjoyable outdoor experience. Maintain a friendly and supportive tone suitable for families and beginners\nHere is your prompt: {question}")
+        return jsonify({"response": response.text}), 200
+    except Exception as e:
+        print("error!")
+        print(e)
+        return jsonify({"error": str(e)}), 500
