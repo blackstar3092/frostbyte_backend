@@ -1,223 +1,118 @@
 import jwt
-from flask import Blueprint, request, jsonify, current_app, Response, g
+from flask import Blueprint, request, jsonify, g
 from flask_restful import Api, Resource  # used for REST API building
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
+from model.post import Post
 from model.likes import Likes
-from model.group import Group
-from model.user import User
 
-"""
-This Blueprint object is used to define APIs for the Likes model.
-- Blueprint is used to modularize application files.
-- This Blueprint is registered to the Flask app in main.py.
-"""
+# Define the Blueprint for the Likes API
 likes_api = Blueprint('likes_api', __name__, url_prefix='/api')
 
-"""
-The Api object is connected to the Blueprint object to define the API endpoints.
-- The API object is used to add resources to the API.
-- The objects added are mapped to code that contains the actions for the API.
-- For more information, refer to the API docs: https://flask-restful.readthedocs.io/en/latest/api.html
-"""
+# Connect the Api object to the Blueprint
 api = Api(likes_api)
 
 class LikesAPI:
     """
     Define the API CRUD endpoints for the Likes model.
-    There are four operations that correspond to common HTTP methods:
-    - post: create a new likes
-    - get: read likess
-    - put: update a likes
-    - delete: delete a likes
+    There are operations for upvoting, downvoting, and retrieving likess for a post.
     """
+
     class _CRUD(Resource):
         @token_required()
         def post(self):
             """
-            Create a new like.
+            Create or update a likes (uplikes or downlikes) for a post.
             """
-            # Obtain the request data sent by the RESTful client API
+            # Get current user from the token
+            current_user = g.current_user
+            # Get the request data
             data = request.get_json()
-            
-            # Validate the presence of required keys
+
+            # Validate required fields
             if not data:
                 return {'message': 'No input data provided'}, 400
-            if 'name' not in data:
-                return {'message': 'Likes name is required'}, 400
-            if 'group_id' not in data:
-                return {'message': 'Group ID is required'}, 400
-            if 'attributes' not in data:
-                data['attributes'] = {}
-                
-            # Create a new likes object using the data from the request
-            likes = Likes(data['name'], data['group_id'], data.get('attributes', {}))
-            # Save the likes object using the Object Relational Mapper (ORM) method defined in the model
+            if 'post_id' not in data:
+                return {'message': 'Post ID is required'}, 400
+            if 'likes_type' not in data or data['likes_type'] not in ['uplikes', 'downlikes']:
+                return {'message': 'Likes type must be "uplikes" or "downlikes"'}, 400
+
+            # Check if the likes already exists for the user on the post
+            existing_likes = Likes.query.filter_by(_post_id=data['post_id'], _user_id=current_user.id).first()
+            if existing_likes:
+                # Update the existing likes type
+                existing_likes._likes_type = data['likes_type']
+                existing_likes.create()  # This will commit the update
+                return jsonify(existing_likes.read())
+
+            # Create a new likes object
+            likes = Likes(data['likes_type'], current_user.id, data['post_id'])
+            # Save the likes using the ORM method
             likes.create()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify(likes.read())
-
-        @token_required()
-        def get(self):
-            """
-            Retrieve a single likes by ID.
-            """
-            # Obtain and validate the request data sent by the RESTful client API
-            data = request.get_json()
-            if data is None:
-                return {'message': 'Likes data not found'}, 400
-            if 'id' not in data:
-                return {'message': 'Likes ID not found'}, 400
-            # Find the likes to read
-            likes = Likes.query.get(data['id'])
-            if likes is None:
-                return {'message': 'Likes not found'}, 404
-            # Convert Python object to JSON format 
-            json_ready = likes.read()
-            # Return a JSON restful response to the client
-            return jsonify(json_ready)
-
-        @token_required()
-        def put(self):
-            """
-            Update a like.
-            """
-            # Obtain the request data sent by the RESTful client API
-            data = request.get_json()
-            # Find the likes to update
-            likes = Likes.query.get(data['id'])
-            if likes is None:
-                return {'message': 'Likes not found'}, 404
-            # Update the likes object using the data from the request
-            likes._name = data['name']
-            likes._group_id = data['group_id']
-            likes._attributes = data.get('attributes', {})
-            # Save the likes object using the Object Relational Mapper (ORM) method defined in the model
-            likes.update()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
+            # Return the saved likes in JSON format
             return jsonify(likes.read())
 
         @token_required()
         def delete(self):
             """
-            Delete a like.
+            Remove a likes by a user on a specific post.
             """
-            # Obtain the request data sent by the RESTful client API
+            # Get current user from the token
+            current_user = g.current_user
+            # Get the request data
             data = request.get_json()
-            # Find the likes to delete
-            likes = Likes.query.get(data['id'])
+
+            # Validate required fields
+            if not data or 'post_id' not in data:
+                return {'message': 'Post ID is required'}, 400
+
+            # Find the likes by user and post
+            likes = Likes.query.filter_by(_post_id=data['post_id'], _user_id=current_user.id).first()
             if likes is None:
                 return {'message': 'Likes not found'}, 404
-            # Delete the likes object using the Object Relational Mapper (ORM) method defined in the model
+
+            # Delete the likes
             likes.delete()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify({'message': 'Likes deleted'})
+            return jsonify({"message": "Likes removed"})
 
-    class _BULK_CRUD(Resource):
-        def post(self):
-            """
-            Handle bulk likes creation by sending POST requests to the single likes endpoint.
-            """
-            likes = request.get_json()
-
-            if not isinstance(likes, list):
-                return {'message': 'Expected a list of likes data'}, 400
-
-            results = {'errors': [], 'success_count': 0, 'error_count': 0}
-
-            with current_app.test_client() as client:
-                for likes in likes:
-                    # Simulate a POST request to the single likes creation endpoint
-                    response = client.post('/api/likes', json=likes)
-
-                    if response.status_code == 200:
-                        results['success_count'] += 1
-                    else:
-                        results['errors'].append(response.get_json())
-                        results['error_count'] += 1
-
-            # Return the results of the bulk creation process
-            return jsonify(results)
-        
+    class _POST_VOTES(Resource):
         def get(self):
             """
-            Retrieve all likess.
+            Retrieve all likess for a specific post, including counts of uplikess and downlikes.
             """
-            # Find all the likes
-            likes = Likes.query.all()
-            # Prepare a JSON list of all the likess, using list comprehension
-            json_ready = []
-            for likes in likes:
-                likes_data = likes.read()
-                json_ready.append(likes_data)
-            # Return a JSON list, converting Python dictionaries to JSON format
-            return jsonify(json_ready)
+            # Attempt to get post_id from query parameters first
+            post_id = request.args.get('post_id')
+            
+            # If not found in query params, try to parse from JSON body
+            if not post_id:
+                try:
+                    data = request.get_json()
+                    post_id = data.get('post_id') if data else None
+                except:
+                    return {'message': 'Post ID is required either as a query parameter or in the JSON body'}, 400
 
-    class _BULK_FILTER(Resource):
-        @token_required()
-        def post(self):
-            """
-            Retrieve all likess under a group by group name.
-            """
-            # Obtain and validate the request data sent by the RESTful client API
-            data = request.get_json()
-            if data is None:
-                return {'message': 'Group data not found'}, 400
-            if 'group_name' not in data:
-                return {'message': 'Group name not found'}, 400
-            
-            # Find the group by name
-            group = Group.query.filter_by(_name=data['group_name']).first()
-            if group is None:
-                return {'message': 'Group not found'}, 404
-            
-            # Find all likess under the group
-            likes = Likes.query.filter_by(_group_id=group.id).all()
-            # Prepare a JSON list of all the likess, using list comprehension
-            json_ready = [likes.read() for likes in likes]
-            # Return a JSON list, converting Python dictionaries to JSON format
-            return jsonify(json_ready)
+            if not post_id:
+                return {'message': 'Post ID is required'}, 400
 
-    class _FILTER(Resource):
-        @token_required()
-        def post(self):
-            """
-            Retrieve a single likes by group name and likes name.
-            """
-            # Obtain and validate the request data sent by the RESTful client API
-            data = request.get_json()
-            if data is None:
-                return {'message': 'Group and Likes data not found'}, 400
-            if 'group_name' not in data:
-                return {'message': 'Group name not found'}, 400
-            if 'likes_name' not in data:
-                return {'message': 'Likes name not found'}, 400
-            
-            # Find the group by name
-            group = Group.query.filter_by(_name=data['group_name']).first()
-            if group is None:
-                return {'message': 'Group not found'}, 404
-            
-            # Find the likes by group ID and likes name
-            likes = Likes.query.filter_by(_group_id=group.id, _name=data['likes_name']).first()
-            if likes is None:
-                return {'message': 'Likes not found'}, 404
-            
-            # Convert Python object to JSON format 
-            json_ready = likes.read()
-            # Return a JSON restful response to the client
-            return jsonify(json_ready)
+            # Get all likess for the post
+            likes = Likes.query.filter_by(_post_id=post_id).all()
+            uplikes = [likes.read() for likes in likes if likes._likes_type == 'uplikes']
+            downlikes = [likes.read() for likes in likes if likes._likes_type == 'downlikes']
+
+            result = {
+                "post_id": post_id,
+                "uplikes_count": len(uplikes),
+                "downlikes_count": len(downlikes),
+                "uplikes": uplikes,
+                "downlikes": downlikes
+            }
+            return jsonify(result)
 
     """
-    Map the _CRUD, _BULK_CRUD, _BULK_FILTER, and _FILTER classes to the API endpoints for /likes, /likess, /likess/filter, and /likes/filter.
-    - The API resource class inherits from flask_restful.Resource.
-    - The _CRUD class defines the HTTP methods for the API.
-    - The _BULK_CRUD class defines the bulk operations for the API.
-    - The _BULK_FILTER class defines the endpoints for filtering likess by group name.
-    - The _FILTER class defines the endpoints for filtering a specific likes by group name and likes name.
+    Map the _CRUD and _POST_VOTES classes to the API endpoints for /likes and /likes/post.
+    - The _CRUD class defines the HTTP methods for voting (post and delete).
+    - The _POST_VOTES class defines the endpoint for retrieving all likess for a specific post.
     """
     api.add_resource(_CRUD, '/likes')
-    api.add_resource(_BULK_CRUD, '/likes')
-    api.add_resource(_BULK_FILTER, '/likes/filter')
-    api.add_resource(_FILTER, '/likes/filter')
+    api.add_resource(_POST_VOTES, '/likes/post')
