@@ -15,6 +15,7 @@ class StudentAPI:
     
     class _Aranya(Resource): 
         def get(self):
+            
              pass
  
  
@@ -23,12 +24,12 @@ class StudentAPI:
             InfoDb = []
             # add a row to list, an Info record
             InfoDb.append({
-                "FirstName": "Avava",
+                "FirstName": "Ava",
                 "LastName": "Shalon",
                 "Favorite_Color": "blue",
                 "Favorite_Fruit": "Avocado",
                 "Email": "jmortensen@powayusd.com",
-                "Hobbies": ["Watching TV", "cooking", "2003-Excursion", "1997-F350", "1969-Cadillac"]
+                "Hobbies": ["Watching TV", "cooking", "swimming", "going to the beach"]
             })
             pass
            
@@ -79,7 +80,7 @@ class StudentAPI:
     # building RESTapi endpoint
     api.add_resource(_Abby, '/student/abby')          
     api.add_resource(_Aranya, '/student/aranya')
-    api.add__resource(_Ava, '/student/ava')
+    api.add_resource(_Ava, '/student/ava')
     api.add_resource(_Elliot, '/student/elliot')
     api.add_resource(_Risha, '/student/risha')
     api.add_resource(_Shriya, '/student/shriya')
