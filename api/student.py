@@ -20,6 +20,7 @@ class StudentAPI:
                 "FavoriteSport": "Dance", 
                 "Hobbies": ["Baking", "Watching Shows", "Reading", "Coloring",]
             })
+            return InfoDb, 200
             pass                                                                               
     
     class _Aranya(Resource): 
@@ -34,6 +35,7 @@ class StudentAPI:
                 "FavoriteSport": "Boxing", 
                 "Hobbies": ["Watching Movies", "Walking Dog", "Machine Learning", "Excercise",]
             })
+            return InfoDb, 200
             pass     
  
  
@@ -49,6 +51,7 @@ class StudentAPI:
                 "Email": "jmortensen@powayusd.com",
                 "Hobbies": ["Watching TV", "cooking", "swimming", "going to the beach"]
             })
+            return InfoDb, 200
             pass
            
     class _Elliot(Resource):
@@ -63,6 +66,7 @@ class StudentAPI:
                 "Favorite Sport": "jmortensen@powayusd.com",
                 "Hobbies": ["reading", "exercising", "going to the beach", "hiking", "singing", "playing instruments"]
             })  
+            return InfoDb, 200
             pass
 
     class _Risha(Resource): 
@@ -78,6 +82,7 @@ class StudentAPI:
                 "FavoriteSport": "badminton", 
                 "Hobbies": ["Reading", "Piano", "Cybersecurity", "Video Games", "Debate"]
             })
+            return InfoDb, 200
             pass
 
     class _Shriya(Resource): 
@@ -93,6 +98,7 @@ class StudentAPI:
                 "FavoriteSport": "Basketball",
                 "Hobbies": ["Basketball", "CyberSecurity", "Hanging out with friends", "", "Speech and Debate"]
             })
+            return InfoDb, 200
             pass
     
     # building RESTapi endpoint
