@@ -58,11 +58,11 @@ class StudentAPI:
             InfoDb.append({
                 "FirstName": "Elliot",
                 "LastName": "Yang",
-                "Favorite_Color": "---",
-                "Favorite_Fruit": "San Diego",
-                "Email": "jmortensen@powayusd.com",
-                "Owns_Cars": ["2015-Fusion", "2011-Ranger", "2003-Excursion", "1997-F350", "1969-Cadillac"]
-            })
+                "Favorite_Color": "purple",
+                "Favorite_Fruit": "watermelon",
+                "Favorite Sport": "jmortensen@powayusd.com",
+                "Hobbies": ["reading", "exercising", "going to the beach", "hiking", "singing", "playing instruments"]
+            })  
             pass
 
     class _Risha(Resource): 

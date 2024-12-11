@@ -12,27 +12,63 @@ CORS(app, supports_credentials=True, origins='*')  # Allow all origins (*)
 def get_data():
     # start a list, to be used like a information database
     InfoDb = []
+    # add a row to list, an Info record
+    InfoDb.append({
+            "FirstName": "Ava",
+            "LastName": "Shalon",
+            "Favorite_Color": "blue",
+            "Favorite_Fruit": "Avocado",
+            "Hobbies": ["Watching TV", "cooking", "swimming", "going to the beach"]
+            })
 
     # add a row to list, an Info record
     InfoDb.append({
-        "FirstName": "John",
-        "LastName": "Mortensen",
-        "DOB": "October 21",
-        "Residence": "San Diego",
-        "Email": "jmortensen@powayusd.com",
-        "Owns_Cars": ["2015-Fusion", "2011-Ranger", "2003-Excursion", "1997-F350", "1969-Cadillac"]
-    })
-
-    # add a row to list, an Info record
-    InfoDb.append({
-        "FirstName": "Shane",
-        "LastName": "Lopez",
-        "DOB": "February 27",
-        "Residence": "San Diego",
-        "Email": "slopez@powayusd.com",
-        "Owns_Cars": ["2021-Insight"]
-    })
+            "FirstName": "Elliot",
+            "LastName": "Yang",
+            "Favorite_Color": "purple",
+            "Favorite_Fruit": "watermelon",
+            "Favorite Sport": "jmortensen@powayusd.com",
+            "Hobbies": ["reading", "exercising", "going to the beach", "hiking", "singing", "playing instruments"]
+            })  
     
+    InfoDb.append({
+            "FirstName": "Risha",
+            "LastName": "Guha",
+            "FavoriteColor": "Blue",
+            "FavoriteFruit": "mango",
+            "FavoriteSport": "badminton", 
+            "Hobbies": ["Reading", "Piano", "Cybersecurity", "Video Games", "Debate"]
+            })
+    
+    InfoDb.append({
+            "FirstName": "Shriya",
+            "LastName": "Paladugu",
+            "FavoriteColor": "Pink",
+            "FavoriteFruit": "Orange",
+            "FavoriteSport": "Basketball",
+            "Hobbies": ["Basketball", "CyberSecurity", "Hanging out with friends", "", "Speech and Debate"]
+            })
+    
+    InfoDb.append({
+            "FirstName": "Abby",
+            "LastName": "Manalo",
+            "FavoriteColor": "Purple",
+            "FavoriteFruit": "Mango",
+            "FavoriteSport": "Dance", 
+            "Hobbies": ["Baking", "Watching Shows", "Reading", "Coloring",]
+            })
+    
+    InfoDb.append({
+            "FirstName": "Aranya",
+            "LastName": "Bhattacharya",
+            "FavoriteColor": "Orange",
+            "FavoriteFruit": "Mango",
+            "FavoriteSport": "Boxing", 
+            "Hobbies": ["Watching Movies", "Walking Dog", "Machine Learning", "Excercise",]
+            })
+    
+    
+
     return jsonify(InfoDb)
 
 # add an HTML endpoint to flask app

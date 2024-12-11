@@ -31,113 +31,138 @@ def ai_homework_help():
         print(e)
         return jsonify({"error": str(e)}), 500
     
-class ChannelAPI:
+
+class GeminiAPI:
     """
-    Define the API CRUD endpoints for the Channel model.
+    Define the API CRUD endpoints for the Post model.
     There are four operations that correspond to common HTTP methods:
-    - post: create a new channel
-    - get: read channels
-    - put: update a channel
-    - delete: delete a channel
+    - post: create a new post
+    - get: read posts
+    - put: update a post
+    - delete: delete a post
     """
     class _CRUD(Resource):
         @token_required()
         def post(self):
             """
-            Create a new channel.
+            Create a new post.
             """
+            # Obtain the current user from the token required setting in the global context
+            current_user = g.current_user
             # Obtain the request data sent by the RESTful client API
             data = request.get_json()
-            
+
             # Validate the presence of required keys
             if not data:
                 return {'message': 'No input data provided'}, 400
-            if 'name' not in data:
-                return {'message': 'Channel name is required'}, 400
-            if 'group_id' not in data:
-                return {'message': 'Group ID is required'}, 400
-            if 'attributes' not in data:
-                data['attributes'] = {}
-                
-            # Create a new channel object using the data from the request
-            channel = Channel(data['name'], data['group_id'], data.get('attributes', {}))
-            # Save the channel object using the Object Relational Mapper (ORM) method defined in the model
-            channel.create()
+            if 'title' not in data:
+                return {'message': 'Post title is required'}, 400
+            if 'comment' not in data:
+                return {'message': 'Post comment is required'}, 400
+            if 'channel_id' not in data:
+                return {'message': 'Channel ID is required'}, 400
+            if 'content' not in data:
+                data['content'] = {}
+
+            # Create a new post object using the data from the request
+            post = Post(data['title'], data['comment'], current_user.id, data['channel_id'], data['content'])
+            # Save the post object using the Object Relational Mapper (ORM) method defined in the model
+            post.create()
             # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify(channel.read())
+            return jsonify(post.read())
 
         @token_required()
         def get(self):
             """
-            Retrieve a single channel by ID.
+            Retrieve a single post by ID.
             """
             # Obtain and validate the request data sent by the RESTful client API
             data = request.get_json()
             if data is None:
-                return {'message': 'Channel data not found'}, 400
+                return {'message': 'Post data not found'}, 400
             if 'id' not in data:
-                return {'message': 'Channel ID not found'}, 400
-            # Find the channel to read
-            channel = Channel.query.get(data['id'])
-            if channel is None:
-                return {'message': 'Channel not found'}, 404
+                return {'message': 'Post ID not found'}, 400
+            # Find the post to read
+            post = Post.query.get(data['id'])
+            if post is None:
+                return {'message': 'Post not found'}, 404
             # Convert Python object to JSON format 
-            json_ready = channel.read()
+            json_ready = post.read()
             # Return a JSON restful response to the client
             return jsonify(json_ready)
 
         @token_required()
         def put(self):
             """
-            Update a channel.
+            Update a post.
             """
-            # Obtain the request data sent by the RESTful client API
+            # Obtain the current user
+            current_user = g.current_user
+            # Obtain the request data
             data = request.get_json()
-            # Find the channel to update
-            channel = Channel.query.get(data['id'])
-            if channel is None:
-                return {'message': 'Channel not found'}, 404
-            # Update the channel object using the data from the request
-            channel._name = data['name']
-            channel._group_id = data['group_id']
-            channel._attributes = data.get('attributes', {})
-            # Save the channel object using the Object Relational Mapper (ORM) method defined in the model
-            channel.update()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify(channel.read())
+            # Find the current post from the database table(s)
+            post = Post.query.get(data['id'])
+            if post is None:
+                return {'message': 'Post not found'}, 404
+            # Update the post
+            post._title = data['title']
+            post._content = data['content']
+            post._channel_id = data['channel_id']
+            # Save the post
+            post.update()
+            # Return response
+            return jsonify(post.read())
 
         @token_required()
         def delete(self):
             """
-            Delete a channel.
+            Delete a post.
             """
-            # Obtain the request data sent by the RESTful client API
+            # Obtain the current user
+            current_user = g.current_user
+            # Obtain the request data
             data = request.get_json()
-            # Find the channel to delete
-            channel = Channel.query.get(data['id'])
-            if channel is None:
-                return {'message': 'Channel not found'}, 404
-            # Delete the channel object using the Object Relational Mapper (ORM) method defined in the model
-            channel.delete()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify({'message': 'Channel deleted'})
+            # Find the current post from the database table(s)
+            post = Post.query.get(data['id'])
+            if post is None:
+                return {'message': 'Post not found'}, 404
+            # Delete the post using the ORM method defined in the model
+            post.delete()
+            # Return response
+            return jsonify({"message": "Post deleted"})
+
+    class _USER(Resource):
+        @token_required()
+        def get(self):
+            """
+            Retrieve all posts by the current user.
+            """
+            # Obtain the current user
+            current_user = g.current_user
+            # Find all the posts by the current user
+            posts = Post.query.filter(Post._user_id == current_user.id).all()
+            # Prepare a JSON list of all the posts, using list comprehension
+            json_ready = [post.read() for post in posts]
+            # Return a JSON list, converting Python dictionaries to JSON format
+            return jsonify(json_ready)
 
     class _BULK_CRUD(Resource):
         def post(self):
             """
-            Handle bulk channel creation by sending POST requests to the single channel endpoint.
+            Handle bulk post creation by sending POST requests to the single post endpoint.
             """
-            channels = request.get_json()
+            posts = request.get_json()
 
-            if not isinstance(channels, list):
-                return {'message': 'Expected a list of channel data'}, 400
+            if not isinstance(posts, list):
+                return {'message': 'Expected a list of post data'}, 400
 
             results = {'errors': [], 'success_count': 0, 'error_count': 0}
 
             with current_app.test_client() as client:
-                for channel in channels:
-                    # Simulate a POST request to the single channel creation endpoint
-                    response = client.post('/api/gemini', json=channel)
+                for post in posts:
+                    # Simulate a POST request to the single post creation endpoint
+                    response = client.post('/api/post', json=post)
+
                     if response.status_code == 200:
                         results['success_count'] += 1
                     else:
@@ -149,39 +174,15 @@ class ChannelAPI:
         
         def get(self):
             """
-            Retrieve all channels.
+            Retrieve all posts.
             """
-            # Find all the channels
-            channels = Channel.query.all()
-            # Prepare a JSON list of all the channels, using list comprehension
+            # Find all the posts
+            posts = Post.query.all()
+            # Prepare a JSON list of all the posts, using list comprehension
             json_ready = []
-            for channel in channels:
-                channel_data = channel.read()
-                json_ready.append(channel_data)
-            # Return a JSON list, converting Python dictionaries to JSON format
-            return jsonify(json_ready)
-    class _BULK_FILTER(Resource):
-        @token_required()
-        def post(self):
-            """
-            Retrieve all channels under a group by group name.
-            """
-            # Obtain and validate the request data sent by the RESTful client API
-            data = request.get_json()
-            if data is None:
-                return {'message': 'Group data not found'}, 400
-            if 'group_name' not in data:
-                return {'message': 'Group name not found'}, 400
-            
-            # Find the group by name
-            group = Group.query.filter_by(_name=data['group_name']).first()
-            if group is None:
-                return {'message': 'Group not found'}, 404
-            
-            # Find all channels under the group
-            channels = Channel.query.filter_by(_group_id=group.id).all()
-            # Prepare a JSON list of all the channels, using list comprehension
-            json_ready = [channel.read() for channel in channels]
+            for post in posts:
+                post_data = post.read()
+                json_ready.append(post_data)
             # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
@@ -189,42 +190,31 @@ class ChannelAPI:
         @token_required()
         def post(self):
             """
-            Retrieve a single channel by group name and channel name.
+            Retrieve all posts by channel ID and user ID.
             """
             # Obtain and validate the request data sent by the RESTful client API
             data = request.get_json()
             if data is None:
-                return {'message': 'Group and Channel data not found'}, 400
-            if 'group_name' not in data:
-                return {'message': 'Group name not found'}, 400
-            if 'channel_name' not in data:
-                return {'message': 'Channel name not found'}, 400
+                return {'message': 'Channel and User data not found'}, 400
+            if 'channel_id' not in data:
+                return {'message': 'Channel ID not found'}, 400
             
-            # Find the group by name
-            group = Group.query.filter_by(_name=data['group_name']).first()
-            if group is None:
-                return {'message': 'Group not found'}, 404
-            
-            # Find the channel by group ID and channel name
-            channel = Channel.query.filter_by(_group_id=group.id, _name=data['channel_name']).first()
-            if channel is None:
-                return {'message': 'Channel not found'}, 404
-            
-            # Convert Python object to JSON format 
-            json_ready = channel.read()
-            # Return a JSON restful response to the client
+            # Find all posts by channel ID and user ID
+            posts = Post.query.filter_by(_channel_id=data['channel_id']).all()
+            # Prepare a JSON list of all the posts, using list comprehension
+            json_ready = [post.read() for post in posts]
+            # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
-
     """
-    Map the _CRUD, _BULK_CRUD, _BULK_FILTER, and _FILTER classes to the API endpoints for /channel, /channels, /channels/filter, and /channel/filter.
+    Map the _CRUD, _USER, _BULK_CRUD, and _FILTER classes to the API endpoints for /post, /post/user, /posts, and /posts/filter.
     - The API resource class inherits from flask_restful.Resource.
     - The _CRUD class defines the HTTP methods for the API.
+    - The _USER class defines the endpoints for retrieving posts by the current user.
     - The _BULK_CRUD class defines the bulk operations for the API.
-    - The _BULK_FILTER class defines the endpoints for filtering channels by group name.
-    - The _FILTER class defines the endpoints for filtering a specific channel by group name and channel name.
+    - The _FILTER class defines the endpoints for filtering posts by channel ID and user ID.
     """
-    api.add_resource(_CRUD, '/gemini')
-    api.add_resource(_BULK_CRUD, '/gemini_bulk')
-    api.add_resource(_BULK_FILTER, '/gemini_bulk/filter')
-    api.add_resource(_FILTER, '/gemini/filter')
+    api.add_resource(_CRUD, '/post')
+    api.add_resource(_USER, '/post/user')
+    api.add_resource(_BULK_CRUD, '/posts')
+    api.add_resource(_FILTER, '/posts/filter')
