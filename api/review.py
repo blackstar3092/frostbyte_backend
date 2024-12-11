@@ -7,6 +7,54 @@ from api.jwt_authorize import token_required
 from model.review import Review  # type: ignore # Corrected to capitalized class name
 from model.channel import Channel
 
+
+from __init__ import db
+from datetime import datetime
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    comment = db.Column(db.String(500), nullable=False)
+    content = db.Column(db.JSON, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    park_id = db.Column(db.Integer, db.ForeignKey('parks.id'), nullable=False)
+    channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False)
+
+    park = db.relationship('park', backref=db.backref('reviews', lazy=True))
+    channel = db.relationship('Channel', backref=db.backref('reviews', lazy=True))
+
+    def __init__(self, title, comment, park_id, channel_id, content=None):
+        self.title = title
+        self.comment = comment
+        self.park_id = park_id
+        self.channel_id = channel_id
+        self.content = content or {}
+
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def read(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'comment': self.comment,
+            'content': self.content,
+            'created_at': self.created_at.isoformat(),
+            'park_id': self.park_id,
+            'channel_id': self.channel_id
+        }
+
 """
 This Blueprint object is used to define APIs for the review model.
 - Blueprint is used to modularize application files.
@@ -37,8 +85,8 @@ class REVIEWAPI:
             """
             Create a new review.
             """
-            # Obtain the current user from the token required setting in the global context
-            current_user = g.current_user
+            # Obtain the current park from the token required setting in the global context
+            current_park = g.current_park
             # Obtain the request data sent by the RESTful client API
             data = request.get_json()
 
@@ -55,7 +103,7 @@ class REVIEWAPI:
                 data['content'] = {}
 
             # Create a new review object using the data from the request
-            review =Review(data['title'], data['comment'], current_user.id, data['channel_id'], data['content'])
+            review =Review(data['title'], data['comment'], current_park.id, data['channel_id'], data['content'])
             # Save the review object using the Object Relational Mapper (ORM) method defined in the model
             review.create()
             # Return response to the client in JSON format, converting Python dictionaries to JSON format
@@ -75,7 +123,7 @@ class REVIEWAPI:
             # Find the review to read
             review = Review.query.get(data['id'])
             if review is None:
-                return {'message': 'review not found'}, 404
+                return {'message': 'Review not found'}, 404
             # Convert Python object to JSON format 
             json_ready = review.read()
             # Return a JSON restful response to the client
@@ -86,8 +134,8 @@ class REVIEWAPI:
             """
             Update a review.
             """
-            # Obtain the current user
-            current_user = g.current_user
+            # Obtain the current park
+            current_park = g.current_park
             # Obtain the request data
             data = request.get_json()
             # Find the current review from the database table(s)
@@ -108,8 +156,8 @@ class REVIEWAPI:
             """
             Delete a review.
             """
-            # Obtain the current user
-            current_user = g.current_user
+            # Obtain the current park
+            current_park = g.current_park
             # Obtain the request data
             data = request.get_json()
             # Find the current review from the database table(s)
@@ -121,16 +169,16 @@ class REVIEWAPI:
             # Return response
             return jsonify({"message": "Review deleted"})
 
-    class _USER(Resource):
+    class _park(Resource):
         @token_required()
         def get(self):
             """
-            Retrieve all reviews by the current user.
+            Retrieve all reviews by the current park.
             """
-            # Obtain the current user
-            current_user = g.current_user
-            # Find all the reviews by the current user
-            reviews = Review.query.filter(Review._user_id == current_user.id).all()
+            # Obtain the current park
+            current_park = g.current_park
+            # Find all the reviews by the current park
+            reviews = Review.query.filter(Review._park_id == current_park.id).all()
             # Prepare a JSON list of all the reviews, using list comprehension
             json_ready = [review.read() for review in reviews]
             # Return a JSON list, converting Python dictionaries to JSON format
@@ -180,16 +228,16 @@ class REVIEWAPI:
         @token_required()
         def review(self):
             """
-            Retrieve all reviews by channel ID and user ID.
+            Retrieve all reviews by channel ID and park ID.
             """
             # Obtain and validate the request data sent by the RESTful client API
             data = request.get_json()
             if data is None:
-                return {'message': 'Channel and User data not found'}, 400
+                return {'message': 'Channel and park data not found'}, 400
             if 'channel_id' not in data:
                 return {'message': 'Channel ID not found'}, 400
             
-            # Find all reviews by channel ID and user ID
+            # Find all reviews by channel ID and park ID
             reviews = Review.query.filter_by(_channel_id=data['channel_id']).all()
             # Prepare a JSON list of all the reviews, using list comprehension
             json_ready = [review.read() for review in reviews]
@@ -197,14 +245,14 @@ class REVIEWAPI:
             return jsonify(json_ready)
 
     """
-    Map the _CRUD, _USER, _BULK_CRUD, and _FILTER classes to the API endpoints for /review, /review/user, /reviews, and /reviews/filter.
+    Map the _CRUD, _park, _BULK_CRUD, and _FILTER classes to the API endpoints for /review, /review/park, /reviews, and /reviews/filter.
     - The API resource class inherits from flask_restful.Resource.
     - The _CRUD class defines the HTTP methods for the API.
-    - The _USER class defines the endpoints for retrieving reviews by the current user.
+    - The _park class defines the endpoints for retrieving reviews by the current park.
     - The _BULK_CRUD class defines the bulk operations for the API.
-    - The _FILTER class defines the endpoints for filtering reviews by channel ID and user ID.
+    - The _FILTER class defines the endpoints for filtering reviews by channel ID and park ID.
     """
     api.add_resource(_CRUD, '/review')
-    api.add_resource(_USER, '/review/user')
+    api.add_resource(_park, '/review/park')
     api.add_resource(_BULK_CRUD, '/reviews')
     api.add_resource(_FILTER, '/reviews/filter')
