@@ -73,7 +73,7 @@ class StudentAPI:
                 "FavoriteColor": "Pink",
                 "FavoriteFruit": "Orange",
                 "FavoriteSport": "Basketball",
-                "Hobbies": ["Basketball", "CyberSecurity", "Hanging out with friends", "", "196& Debate9-Cadillac"]
+                "Hobbies": ["Basketball", "CyberSecurity", "Hanging out with friends", "", "Speech and Debate"]
             })
             pass
     
