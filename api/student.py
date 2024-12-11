@@ -10,7 +10,16 @@ api = Api(student_api)
 class StudentAPI:        
     class _Abby(Resource): 
         def get(self):     
-            
+            InfoDb = []
+            # add a row to list, an Info record
+            InfoDb.append({
+                "FirstName": "Abby",
+                "LastName": "Manalo",
+                "FavoriteColor": "Purple",
+                "FavoriteFruit": "Mango",
+                "FavoriteSport": "Dance", 
+                "Hobbies": ["Baking", "Watching Shows", "Reading", "Coloring",]
+            })
             pass                                                                               
     
     class _Aranya(Resource): 
