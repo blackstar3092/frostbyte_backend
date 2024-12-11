@@ -1,4 +1,4 @@
-from flask import Flask, jsonify 
+from flask import Flask, jsonify
 from flask_cors import CORS
 
 # initialize a flask application (app)
@@ -77,7 +77,7 @@ def say_hello():
     html_content = """
     <html>
     <head>
-        <title>Hello</title>
+        <title>Hellox</title>
     </head>
     <body>
         <h2>Hello, World!</h2>
