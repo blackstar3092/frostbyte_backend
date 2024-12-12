@@ -96,7 +96,7 @@ class StudentAPI:
                 "FavoriteColor": "Pink",
                 "FavoriteFruit": "Orange",
                 "FavoriteSport": "Basketball",
-                "Hobbies": ["Basketball", "CyberSecurity", "Hanging out with friends", "", "Speech and Debate"]
+                "Hobbies": ["Basketball", "CyberSecurity", "Hanging out with friends", "Speech and Debate"]
             })
             return InfoDb, 200
             pass
