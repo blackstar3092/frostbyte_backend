@@ -20,7 +20,7 @@ def get_data():
         "FavoriteColor": "Purple",
         "FavoriteFruit": "Mango",
         "FavoriteSport": "Dance", 
-        "Hobbies": ["Baking", "Watching Shows", "Reading", "Coloring",]
+        "Hobbies": ["Baking",  "Watching Shows",  "Reading",  "Coloring",]
     })
             
     # add a row to list, an Info record
@@ -30,27 +30,27 @@ def get_data():
         "FavoriteColor": "Orange",
         "FavoriteFruit": "Mango",
         "FavoriteSport": "Boxing", 
-        "Hobbies": ["Watching Movies", "Walking Dog", "Machine Learning", "Excercise",]
+        "Hobbies": ["Watching Movies",  "Walking Dog",  "Machine Learning",  "Excercise",]
     })
     
     # add a row to list, an Info record
     InfoDb.append({
         "FirstName": "Ava",
         "LastName": "Shalon",
-        "Favorite_Color": "blue",
-        "Favorite_Fruit": "Avocado",
+        "FavoriteColor": "blue",
+        "FavoriteFruit": "Avocado",
         "Email": "jmortensen@powayusd.com",
-        "Hobbies": ["Watching TV", "cooking", "swimming", "going to the beach"]
+        "Hobbies": ["Watching TV",  "Cooking",  "Swimming",  "Going to the beach"]
     })
     
     # add a row to list, an Info record
     InfoDb.append({
         "FirstName": "Elliot",
         "LastName": "Yang",
-        "Favorite_Color": "purple",
-        "Favorite_Fruit": "watermelon",
+        "FavoriteColor": "purple",
+        "FavoriteFruit": "watermelon",
         "Favorite Sport": "jmortensen@powayusd.com",
-        "Hobbies": ["reading", "exercising", "going to the beach", "hiking", "singing", "playing instruments"]
+        "Hobbies": ["Reading",  "Exercising",  "Going to the beach",  "Hiking",  "Singing",  "Playing instruments"]
     })
     
     # add a row to list, an Info record
@@ -60,7 +60,7 @@ def get_data():
         "FavoriteColor": "Blue",
         "FavoriteFruit": "mango",
         "FavoriteSport": "badminton", 
-        "Hobbies": ["Reading", "Piano", "Cybersecurity", "Video Games", "Debate"]
+        "Hobbies": ["Reading",  "Piano",  "Cybersecurity",  "Video Games",  "Debate"]
     })
     
      # add a row to list, an Info record
@@ -70,7 +70,7 @@ def get_data():
         "FavoriteColor": "Pink",
         "FavoriteFruit": "Orange",
         "FavoriteSport": "Basketball",
-        "Hobbies": ["Basketball", "CyberSecurity", "Hanging out with friends", "", "Speech and Debate"]
+        "Hobbies": ["Basketball",  "CyberSecurity",  "Hanging out with friends",  "Speech and Debate"]
     })
 
     return jsonify(InfoDb)
@@ -108,7 +108,10 @@ def print_data_student():
       <tr>
           <th>First Name</th>
           <th>Last Name</th>
-          <th>Residence</th>
+          <th>Favorite Color</th>
+          <th>Favorite Fruit</th>
+          <th>Favorite Sport</th>
+          <th>Hobbies</th>  
       </tr>
   </thead>
   <tbody id="result">
@@ -151,15 +154,24 @@ def print_data_student():
             const tr = document.createElement("tr");
             const firstname = document.createElement("td");
             const lastname = document.createElement("td");
-            const residence = document.createElement("td");
+            const FavoriteColor = document.createElement("td");
+            const FavoriteFruit = document.createElement("td");
+            const FavoriteSport = document.createElement("td");
+            const Hobbies = document.createElement("td");
             // data is specific to the API
             firstname.innerHTML = row.FirstName; 
             lastname.innerHTML = row.LastName; 
-            residence.innerHTML = row.Residence; 
+            FavoriteColor.innerHTML = row.FavoriteColor;
+            FavoriteFruit.innerHTML = row.FavoriteFruit;
+            FavoriteSport.innerHTML = row.FavoriteSport;
+            Hobbies.innerHTML = row.Hobbies; 
             // this builds each td into tr
             tr.appendChild(firstname);
             tr.appendChild(lastname);
-            tr.appendChild(residence);
+            tr.appendChild(FavoriteColor);
+            tr.appendChild(FavoriteFruit);
+            tr.appendChild(FavoriteSport);
+            tr.appendChild(Hobbies);
             // add HTML to container
             resultContainer.appendChild(tr);
           }
