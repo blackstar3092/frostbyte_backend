@@ -4,8 +4,8 @@ from flask_restful import Api, Resource # type: ignore
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.review import Review  # type: ignore # Corrected to capitalized class name
-from model.channel import Channel
+from model import review
+from model import channel
 
 
 from __init__ import db
