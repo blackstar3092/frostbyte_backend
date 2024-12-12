@@ -4,8 +4,8 @@ from flask_restful import Api, Resource # type: ignore
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.review import Review  # type: ignore # Corrected to capitalized class name
-from model.channel import Channel
+from model import review
+from model import channel
 
 
 from __init__ import db
@@ -121,7 +121,7 @@ class REVIEWAPI:
             if 'id' not in data:
                 return {'message': 'Review ID not found'}, 400
             # Find the review to read
-            review = Review.query.get(data['id'])
+            review = review.query.get(data['id'])
             if review is None:
                 return {'message': 'Review not found'}, 404
             # Convert Python object to JSON format 
@@ -139,7 +139,7 @@ class REVIEWAPI:
             # Obtain the request data
             data = request.get_json()
             # Find the current review from the database table(s)
-            review = Review.query.get(data['id'])
+            review = review.query.get(data['id'])
             if review is None:
                 return {'message': 'review not found'}, 404
             # Update the review
@@ -161,7 +161,7 @@ class REVIEWAPI:
             # Obtain the request data
             data = request.get_json()
             # Find the current review from the database table(s)
-            review = Review.query.get(data['id'])
+            review = review.query.get(data['id'])
             if review is None:
                 return {'message': 'Review not found'}, 404
             # Delete the review using the ORM method defined in the model
@@ -178,7 +178,7 @@ class REVIEWAPI:
             # Obtain the current park
             current_park = g.current_park
             # Find all the reviews by the current park
-            reviews = Review.query.filter(Review._park_id == current_park.id).all()
+            reviews = review.query.filter(Review._park_id == current_park.id).all()
             # Prepare a JSON list of all the reviews, using list comprehension
             json_ready = [review.read() for review in reviews]
             # Return a JSON list, converting Python dictionaries to JSON format
@@ -215,7 +215,7 @@ class REVIEWAPI:
             Retrieve all reviews.
             """
             # Find all the reviews
-            reviews = Review.query.all()
+            reviews = review.query.all()
             # Prepare a JSON list of all the reviews, using list comprehension
             json_ready = []
             for review in reviews:
@@ -238,7 +238,7 @@ class REVIEWAPI:
                 return {'message': 'Channel ID not found'}, 400
             
             # Find all reviews by channel ID and park ID
-            reviews = Review.query.filter_by(_channel_id=data['channel_id']).all()
+            reviews = review.query.filter_by(_channel_id=data['channel_id']).all()
             # Prepare a JSON list of all the reviews, using list comprehension
             json_ready = [review.read() for review in reviews]
             # Return a JSON list, converting Python dictionaries to JSON format
