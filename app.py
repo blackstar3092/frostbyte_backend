@@ -49,7 +49,7 @@ def get_data():
         "LastName": "Yang",
         "FavoriteColor": "purple",
         "FavoriteFruit": "watermelon",
-        "FavoriteSport": "jmortensen@powayusd.com",
+        "FavoriteSport": "none",
         "Hobbies": ["Reading",  "Exercising",  "Going to the beach",  "Hiking",  "Singing",  "Playing instruments"]
     })
     
