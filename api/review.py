@@ -1,6 +1,6 @@
 import jwt
-from flask import Blueprint, request, jsonify, current_app, Response, g # type: ignore
-from flask_restful import Api, Resource # type: ignore
+from flask import Blueprint, request, jsonify, current_app, Response, g 
+from flask_restful import Api, Resource 
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
@@ -256,3 +256,6 @@ class REVIEWAPI:
     api.add_resource(_park, '/review/park')
     api.add_resource(_BULK_CRUD, '/reviews')
     api.add_resource(_FILTER, '/reviews/filter')
+
+    @review_api.route('/review', methods=['POST'])
+def create_review():
