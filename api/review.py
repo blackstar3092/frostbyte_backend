@@ -256,34 +256,3 @@ class REVIEWAPI:
     api.add_resource(_park, '/review/park')
     api.add_resource(_BULK_CRUD, '/reviews')
     api.add_resource(_FILTER, '/reviews/filter')
-    
-    
-    
-    class REVIEWAPI:
-    class _CRUD(Resource):
-        @token_required()
-        def review(self):
-            try:
-                current_park = g.current_park
-                data = request.get_json()
-
-                # Validate the presence of required keys
-                if not data:
-                    return {'message': 'No input data provided'}, 400
-                if 'title' not in data:
-                    return {'message': 'Review title is required'}, 400
-                if 'comment' not in data:
-                    return {'message': 'Review comment is required'}, 400
-                if 'channel_id' not in data:
-                    return {'message': 'Channel ID is required'}, 400
-                if 'content' not in data:
-                    data['content'] = {}
-
-                review = Review(data['title'], data['comment'], current_park.id, data['channel_id'], data['content'])
-                review.create()
-
-                return jsonify(review.read())
-
-            except Exception as e:
-                current_app.logger.error(f"Error creating review: {str(e)}")
-                return {'message': 'An error occurred while creating the review'}, 500
