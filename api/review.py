@@ -139,7 +139,7 @@ class reviewAPI:
     class _BULK_CRUD(Resource):
         def review(self):
             """
-            Handle bulk review creation by sending review requests to the single review endpoint.
+            Handle bulk review creation by sending POST requests to the single review endpoint.
             """
             reviews = request.get_json()
 
