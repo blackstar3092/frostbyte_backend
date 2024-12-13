@@ -1,18 +1,66 @@
 import jwt
-from flask import Blueprint, request, jsonify, current_app, Response, g
-from flask_restful import Api, Resource  # used for REST API building
+from flask import Blueprint, request, jsonify, current_app, Response, g 
+from flask_restful import Api, Resource 
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.post import Post
-from model.channel import Channel
+from model import review
+from model import channel
+
+
+from __init__ import db
+from datetime import datetime
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    comment = db.Column(db.String(500), nullable=False)
+    content = db.Column(db.JSON, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    park_id = db.Column(db.Integer, db.ForeignKey('parks.id'), nullable=False)
+    channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False)
+
+    park = db.relationship('park', backref=db.backref('reviews', lazy=True))
+    channel = db.relationship('Channel', backref=db.backref('reviews', lazy=True))
+
+    def __init__(self, title, comment, park_id, channel_id, content=None):
+        self.title = title
+        self.comment = comment
+        self.park_id = park_id
+        self.channel_id = channel_id
+        self.content = content or {}
+
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def read(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'comment': self.comment,
+            'content': self.content,
+            'created_at': self.created_at.isoformat(),
+            'park_id': self.park_id,
+            'channel_id': self.channel_id
+        }
 
 """
-This Blueprint object is used to define APIs for the Post model.
+This Blueprint object is used to define APIs for the review model.
 - Blueprint is used to modularize application files.
 - This Blueprint is registered to the Flask app in main.py.
 """
-post_api = Blueprint('post_api', __name__, url_prefix='/api')
+review_api = Blueprint('review_api', __name__, url_prefix='/api')
 
 """
 The Api object is connected to the Blueprint object to define the API endpoints.
@@ -20,25 +68,25 @@ The Api object is connected to the Blueprint object to define the API endpoints.
 - The objects added are mapped to code that contains the actions for the API.
 - For more information, refer to the API docs: https://flask-restful.readthedocs.io/en/latest/api.html
 """
-api = Api(post_api)
+api = Api(review_api)
 
-class PostAPI:
+class REVIEWAPI:
     """
-    Define the API CRUD endpoints for the Post model.
+    Define the API CRUD endpoints for the Review model.
     There are four operations that correspond to common HTTP methods:
-    - post: create a new post
-    - get: read posts
-    - put: update a post
-    - delete: delete a post
+    - review: create a new review
+    - get: read reviews
+    - put: update a review
+    - delete: delete a review
     """
     class _CRUD(Resource):
         @token_required()
-        def post(self):
+        def review(self):
             """
-            Create a new post.
+            Create a new review.
             """
-            # Obtain the current user from the token required setting in the global context
-            current_user = g.current_user
+            # Obtain the current park from the token required setting in the global context
+            current_park = g.current_park
             # Obtain the request data sent by the RESTful client API
             data = request.get_json()
 
@@ -46,112 +94,112 @@ class PostAPI:
             if not data:
                 return {'message': 'No input data provided'}, 400
             if 'title' not in data:
-                return {'message': 'Post title is required'}, 400
+                return {'message': 'Review title is required'}, 400
             if 'comment' not in data:
-                return {'message': 'Post comment is required'}, 400
+                return {'message': 'Review comment is required'}, 400
             if 'channel_id' not in data:
                 return {'message': 'Channel ID is required'}, 400
             if 'content' not in data:
                 data['content'] = {}
 
-            # Create a new post object using the data from the request
-            post = Post(data['title'], data['comment'], current_user.id, data['channel_id'], data['content'])
-            # Save the post object using the Object Relational Mapper (ORM) method defined in the model
-            post.create()
+            # Create a new review object using the data from the request
+            review =Review(data['title'], data['comment'], current_park.id, data['channel_id'], data['content'])
+            # Save the review object using the Object Relational Mapper (ORM) method defined in the model
+            review.create()
             # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify(post.read())
+            return jsonify(review.read())
 
         @token_required()
         def get(self):
             """
-            Retrieve a single post by ID.
+            Retrieve a single review by ID.
             """
             # Obtain and validate the request data sent by the RESTful client API
             data = request.get_json()
             if data is None:
-                return {'message': 'Post data not found'}, 400
+                return {'message': 'Review data not found'}, 400
             if 'id' not in data:
-                return {'message': 'Post ID not found'}, 400
-            # Find the post to read
-            post = Post.query.get(data['id'])
-            if post is None:
-                return {'message': 'Post not found'}, 404
+                return {'message': 'Review ID not found'}, 400
+            # Find the review to read
+            review = review.query.get(data['id'])
+            if review is None:
+                return {'message': 'Review not found'}, 404
             # Convert Python object to JSON format 
-            json_ready = post.read()
+            json_ready = review.read()
             # Return a JSON restful response to the client
             return jsonify(json_ready)
 
         @token_required()
         def put(self):
             """
-            Update a post.
+            Update a review.
             """
-            # Obtain the current user
-            current_user = g.current_user
+            # Obtain the current park
+            current_park = g.current_park
             # Obtain the request data
             data = request.get_json()
-            # Find the current post from the database table(s)
-            post = Post.query.get(data['id'])
-            if post is None:
-                return {'message': 'Post not found'}, 404
-            # Update the post
-            post._title = data['title']
-            post._content = data['content']
-            post._channel_id = data['channel_id']
-            # Save the post
-            post.update()
+            # Find the current review from the database table(s)
+            review = review.query.get(data['id'])
+            if review is None:
+                return {'message': 'review not found'}, 404
+            # Update the review
+            review._title = data['title']
+            review._content = data['content']
+            review._channel_id = data['channel_id']
+            # Save the review
+            review.update()
             # Return response
-            return jsonify(post.read())
+            return jsonify(review.read())
 
         @token_required()
         def delete(self):
             """
-            Delete a post.
+            Delete a review.
             """
-            # Obtain the current user
-            current_user = g.current_user
+            # Obtain the current park
+            current_park = g.current_park
             # Obtain the request data
             data = request.get_json()
-            # Find the current post from the database table(s)
-            post = Post.query.get(data['id'])
-            if post is None:
-                return {'message': 'Post not found'}, 404
-            # Delete the post using the ORM method defined in the model
-            post.delete()
+            # Find the current review from the database table(s)
+            review = review.query.get(data['id'])
+            if review is None:
+                return {'message': 'Review not found'}, 404
+            # Delete the review using the ORM method defined in the model
+            review.delete()
             # Return response
-            return jsonify({"message": "Post deleted"})
+            return jsonify({"message": "Review deleted"})
 
-    class _USER(Resource):
+    class _park(Resource):
         @token_required()
         def get(self):
             """
-            Retrieve all posts by the current user.
+            Retrieve all reviews by the current park.
             """
-            # Obtain the current user
-            current_user = g.current_user
-            # Find all the posts by the current user
-            posts = Post.query.filter(Post._user_id == current_user.id).all()
-            # Prepare a JSON list of all the posts, using list comprehension
-            json_ready = [post.read() for post in posts]
+            # Obtain the current park
+            current_park = g.current_park
+            # Find all the reviews by the current park
+            reviews = review.query.filter(Review._park_id == current_park.id).all()
+            # Prepare a JSON list of all the reviews, using list comprehension
+            json_ready = [review.read() for review in reviews]
             # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
     class _BULK_CRUD(Resource):
-        def post(self):
+        def review(self):
             """
-            Handle bulk post creation by sending POST requests to the single post endpoint.
+            Handle bulk review creation by sending REVIEW requests to the single review endpoint.
             """
-            posts = request.get_json()
+            reviews = request.get_json()
 
-            if not isinstance(posts, list):
-                return {'message': 'Expected a list of post data'}, 400
+            if not isinstance(reviews, list):
+                return {'message': 'Expected a list of review data'}, 400
 
             results = {'errors': [], 'success_count': 0, 'error_count': 0}
 
             with current_app.test_client() as client:
-                for post in posts:
-                    # Simulate a POST request to the single post creation endpoint
-                    response = client.post('/api/post', json=post)
+                for review in reviews:
+                    # Simulate a review request to the single review creation endpoint
+                    response = client.review('/api/review', json=review)
 
                     if response.status_code == 200:
                         results['success_count'] += 1
@@ -164,47 +212,78 @@ class PostAPI:
         
         def get(self):
             """
-            Retrieve all posts.
+            Retrieve all reviews.
             """
-            # Find all the posts
-            posts = Post.query.all()
-            # Prepare a JSON list of all the posts, using list comprehension
+            # Find all the reviews
+            reviews = review.query.all()
+            # Prepare a JSON list of all the reviews, using list comprehension
             json_ready = []
-            for post in posts:
-                post_data = post.read()
-                json_ready.append(post_data)
+            for review in reviews:
+                review_data = review.read()
+                json_ready.append(review_data)
             # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
     class _FILTER(Resource):
         @token_required()
-        def post(self):
+        def review(self):
             """
-            Retrieve all posts by channel ID and user ID.
+            Retrieve all reviews by channel ID and park ID.
             """
             # Obtain and validate the request data sent by the RESTful client API
             data = request.get_json()
             if data is None:
-                return {'message': 'Channel and User data not found'}, 400
+                return {'message': 'Channel and park data not found'}, 400
             if 'channel_id' not in data:
                 return {'message': 'Channel ID not found'}, 400
             
-            # Find all posts by channel ID and user ID
-            posts = Post.query.filter_by(_channel_id=data['channel_id']).all()
-            # Prepare a JSON list of all the posts, using list comprehension
-            json_ready = [post.read() for post in posts]
+            # Find all reviews by channel ID and park ID
+            reviews = review.query.filter_by(_channel_id=data['channel_id']).all()
+            # Prepare a JSON list of all the reviews, using list comprehension
+            json_ready = [review.read() for review in reviews]
             # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
     """
-    Map the _CRUD, _USER, _BULK_CRUD, and _FILTER classes to the API endpoints for /post, /post/user, /posts, and /posts/filter.
+    Map the _CRUD, _park, _BULK_CRUD, and _FILTER classes to the API endpoints for /review, /review/park, /reviews, and /reviews/filter.
     - The API resource class inherits from flask_restful.Resource.
     - The _CRUD class defines the HTTP methods for the API.
-    - The _USER class defines the endpoints for retrieving posts by the current user.
+    - The _park class defines the endpoints for retrieving reviews by the current park.
     - The _BULK_CRUD class defines the bulk operations for the API.
-    - The _FILTER class defines the endpoints for filtering posts by channel ID and user ID.
+    - The _FILTER class defines the endpoints for filtering reviews by channel ID and park ID.
     """
-    api.add_resource(_CRUD, '/post')
-    api.add_resource(_USER, '/post/user')
-    api.add_resource(_BULK_CRUD, '/posts')
-    api.add_resource(_FILTER, '/posts/filter')
+    api.add_resource(_CRUD, '/review')
+    api.add_resource(_park, '/review/park')
+    api.add_resource(_BULK_CRUD, '/reviews')
+    api.add_resource(_FILTER, '/reviews/filter')
+    
+    
+    
+    class REVIEWAPI:
+    class _CRUD(Resource):
+        @token_required()
+        def review(self):
+            try:
+                current_park = g.current_park
+                data = request.get_json()
+
+                # Validate the presence of required keys
+                if not data:
+                    return {'message': 'No input data provided'}, 400
+                if 'title' not in data:
+                    return {'message': 'Review title is required'}, 400
+                if 'comment' not in data:
+                    return {'message': 'Review comment is required'}, 400
+                if 'channel_id' not in data:
+                    return {'message': 'Channel ID is required'}, 400
+                if 'content' not in data:
+                    data['content'] = {}
+
+                review = Review(data['title'], data['comment'], current_park.id, data['channel_id'], data['content'])
+                review.create()
+
+                return jsonify(review.read())
+
+            except Exception as e:
+                current_app.logger.error(f"Error creating review: {str(e)}")
+                return {'message': 'An error occurred while creating the review'}, 500
