@@ -37,31 +37,43 @@ model = genai.GenerativeModel(
         "You DO NOT give responses longer than 4 sentences."
     ),
 )
-class _Chatbot(Resource):
+class Chatbot(Resource):
+    MAX_HISTORY = 50  # Limit conversation history
+
     def __init__(self):
-        self.history = []
+        self.history: list[dict[str, list[str]]] = []
+        self.chat_session = model.start_chat(history=self.history)  # Persistent session
+
+    def update_history(self, role: str, message: str):
+        if len(self.history) >= self.MAX_HISTORY:
+            self.history.pop(0)  # Remove the oldest entry
+        self.history.append({"role": role, "parts": [message]})
+
     def post(self):
-        from flask import request, jsonify
-        data = request.get_json()
-        user_input = data.get("user_input")
-        if not user_input:
-            return jsonify({"error": "User input is required"}), 400
         try:
-            # Start the chat session
-            chat_session = model.start_chat(history=self.history)
+            data = request.get_json()
+            user_input = data.get("user_input")
+            if not user_input:
+                return jsonify({"error": "User input is required"}), 400
+
             # Get the response from the model
-            response = chat_session.send_message(user_input)
-            # Extract the model response and remove trailing newline characters
+            response = self.chat_session.send_message(user_input)
             model_response = response.text.rstrip("\n")
+
             # Update the conversation history
-            self.history.append({"role": "user", "parts": [user_input]})
-            self.history.append({"role": "assistant", "parts": [model_response]})
+            self.update_history("user", user_input)
+            self.update_history("assistant", model_response)
+
             return jsonify({
                 "user_input": user_input,
                 "model_response": model_response,
             })
         except Exception as e:
+            import traceback
+            print(f"Error occurred: {str(e)}")
+            traceback.print_exc()  # Log the full traceback
             return jsonify({"error": str(e)}), 500
+        
 # Add the resource to the API
-api.add_resource(_Chatbot, '/gemini')
-chatbot_api_instance = _Chatbot()
+api.add_resource(Chatbot, '/gemini')
+chatbot_api_instance = Chatbot()

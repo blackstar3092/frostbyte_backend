@@ -85,6 +85,8 @@ pip install -r requirements.txt
     - Click on loop back address in terminal to launch
       - Output window will contain page to launch http://127.0.0.1:8087
     - Login using your secrets
+- Google AI dependencies:
+  - pip install google.generativeai
 
 ## Idea
 
