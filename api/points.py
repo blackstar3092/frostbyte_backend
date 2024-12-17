@@ -6,20 +6,21 @@ app = Flask(__name__)
 points_data = {}
 
 # Endpoint to submit points
-@app.route('/submit-points', methods=['POST'])
+@app.route('/api/submit-points', methods=['POST'])
 def submit_points():
-    data = request.jsonify
+    data = request.json
     username = data.get('username')
     points = data.get('points')
 
     if not username or points is None:
         return jsonify({"message": "Username and points are required."}), 400
 
+    # Save points to in-memory storage
     points_data[username] = points
-    return jsonify({"message": "Points saved successfully!", "points": points_data[username]})
+    return jsonify({"message": "Points saved successfully!", "username": username, "points": points_data[username]})
 
 # Endpoint to get points
-@app.route('/get-points/<username>', methods=['GET'])
+@app.route('/api/get-points/<username>', methods=['GET'])
 def get_points(username):
     points = points_data.get(username)
 
