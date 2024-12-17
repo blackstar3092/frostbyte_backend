@@ -4,8 +4,56 @@ from flask_restful import Api, Resource  # used for REST API building
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.review import review
-from model.channel import Channel
+#from model import review
+#from model import channel
+
+
+from __init__ import db
+from datetime import datetime
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    comment = db.Column(db.String(500), nullable=False)
+    content = db.Column(db.JSON, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    park_id = db.Column(db.Integer, db.ForeignKey('parks.id'), nullable=False)
+    channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False)
+
+    park = db.relationship('park', backref=db.backref('reviews', lazy=True))
+    channel = db.relationship('Channel', backref=db.backref('reviews', lazy=True))
+
+    def __init__(self, title, comment, park_id, channel_id, content=None):
+        self.title = title
+        self.comment = comment
+        self.park_id = park_id
+        self.channel_id = channel_id
+        self.content = content or {}
+
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def read(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'comment': self.comment,
+            'content': self.content,
+            'created_at': self.created_at.isoformat(),
+            'park_id': self.park_id,
+            'channel_id': self.channel_id
+        }
 
 """
 This Blueprint object is used to define APIs for the review model.
