@@ -28,6 +28,8 @@ from api.carphoto import car_api
 from api.carChat import car_chat_api
 from api.gemini import gemini_api
 from api.student import student_api
+#from api.review import review_api
+from api.star import star_api
 
 from api.vote import vote_api
 # database Initialization functions
@@ -58,6 +60,7 @@ app.register_blueprint(car_api)
 # adding gemini api
 app.register_blueprint(gemini_api)
 app.register_blueprint(student_api)
+app.register_blueprint(star_api)
 
 
 

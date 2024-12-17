@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from __init__ import app, db
 from model.user import User
 from model.channel import Channel
+from sqlalchemy.orm import relationship
 
 class Post(db.Model):
     """
@@ -29,6 +30,7 @@ class Post(db.Model):
     _content = db.Column(JSON, nullable=False)
     _user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     _channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False)
+    ratings = relationship("Rating", back_populates="post")
 
     def __init__(self, title, comment, user_id=None, channel_id=None, content={}, user_name=None, channel_name=None):
         """
