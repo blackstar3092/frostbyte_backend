@@ -1,256 +1,106 @@
 import jwt
 from flask import Blueprint, request, jsonify, current_app, Response, g
-from flask_restful import Api, Resource  # used for REST API building
+from flask_restful import Api, Resource
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.analytics import Analytics
+from api.Analytics import Analytics
 from model.user import User
 from model.section import Section
 
-"""
-This Blueprint object is used to define APIs for the Analytics model.
-- Blueprint is used to modularize application files.
-- This Blueprint is registered to the Flask app in main.py.
-"""
 analytics_api = Blueprint('analytics_api', __name__, url_prefix='/api')
-
-"""
-The Api object is connected to the Blueprint object to define the API endpoints.
-- The API object is used to add resources to the API.
-- The objects added are mapped to code that contains the actions for the API.
-- For more information, refer to the API docs: https://flask-restful.readthedocs.io/en/latest/api.html
-"""
 api = Api(analytics_api)
 
 class AnalyticsAPI:
-    """
-    Define the API CRUD endpoints for the Analytics model.
-    There are four operations that correspond to common HTTP methods:
-    - post: create a new analytics
-    - get: read analytics
-    - put: update a analytics
-    - delete: delete a analytics
-    """
     class _CRUD(Resource):
         @token_required()
         def post(self):
             """
-            Create a new analytics.
+            Create a new analytics entry with validation.
             """
-            # Obtain the current user from the token required setting in the global context
             current_user = g.current_user
-            # Obtain the request data sent by the RESTful client API
             data = request.get_json()
-            # Create a new analytics object using the data from the request
-            analytics = Analytics(data['park_id'], data['user_id'], data['stars'], data['review_text'], data.get('moderator_id', current_user.id))
-            # Save the analytics object using the Object Relational Mapper (ORM) method defined in the model
+
+            # Validation for required fields
+            if not all(k in data for k in ('park_id', 'user_id', 'stars', 'review_text')):
+                return {'message': 'Missing required fields'}, 400
+
+            # Type checking and validations
+            if not isinstance(data['stars'], int) or not (1 <= data['stars'] <= 5):
+                return {'message': 'Stars must be an integer between 1 and 5'}, 400
+            if not isinstance(data['review_text'], str) or not data['review_text'].strip():
+                return {'message': 'review_text must be a non-empty string'}, 400
+
+            # Create new analytics entry
+            analytics = Analytics(
+                park_id=data['park_id'],
+                user_id=data['user_id'],
+                stars=data['stars'],
+                review_text=data['review_text'],
+                moderator_id=current_user.id
+            )
             analytics.create()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
             return jsonify(analytics.read())
 
         @token_required()
         def get(self):
             """
-            Retrieve a single analytics by ID.
+            Retrieve analytics filtered by park_id.
             """
-            # Obtain and validate the request data sent by the RESTful client API
-            data = request.get_json()
-            if data is None:
-                return {'message': 'Analytics data not found'}, 400
-            if 'id' not in data:
-                return {'message': 'Analytics ID not found'}, 400
-            # Find the analytics to read
-            analytics = Analytics.query.get(data['id'])
-            if analytics is None:
-                return {'message': 'Analytics not found'}, 404
-            # Convert Python object to JSON format 
-            json_ready = analytics.read()
-            # Return a JSON restful response to the client
-            return jsonify(json_ready)
-
-        @token_required()
-        def put(self):
-            """
-            Update a analytics.
-            """
-            # Obtain the current user from the token required setting in the global context
-            current_user = g.current_user
-            # Obtain the request data sent by the RESTful client API
-            data = request.get_json()
-            # Find the analytics to update
-            analytics = Analytics.query.get(data['id'])
-            if analytics is None:
-                return {'message': 'Analytics not found'}, 404
-            # Update the analytics object using the data from the request
-            analytics._park_id = data['park_id']
-            analytics._user_id = data['user_id']
-            analytics._stars = data['stars']
-            analytics._review_text = data['review_text']
-            analytics._moderator_id = data.get('moderator_id', current_user.id)
-            # Save the analytics object using the Object Relational Mapper (ORM) method defined in the model
-            analytics.update()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify(analytics.read())
-
-        @token_required()
-        def delete(self):
-            """
-            Delete a analytics.
-            """
-            # Obtain the request data sent by the RESTful client API
-            data = request.get_json()
-            # Find the analytics to delete
-            analytics = Analytics.query.get(data['id'])
-            if analytics is None:
-                return {'message': 'Analytics not found'}, 404
-            # Delete the analytics object using the Object Relational Mapper (ORM) method defined in the model
-            analytics.delete()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify({'message': 'Analytics deleted'})
+            park_id = request.args.get('park_id')
+            if not park_id:
+                return {'message': 'park_id parameter is required'}, 400
+            
+            analytics_list = Analytics.query.filter_by(park_id=park_id).all()
+            return jsonify([entry.read() for entry in analytics_list])
 
     class _BULK_CRUD(Resource):
+        @token_required()
         def post(self):
             """
-            Handle bulk analytics creation by sending POST requests to the single analytics endpoint.
+            Bulk create analytics with validation.
             """
-            analytics = request.get_json()
-
-            if not isinstance(analytics, list):
+            data_list = request.get_json()
+            if not isinstance(data_list, list):
                 return {'message': 'Expected a list of analytics data'}, 400
 
-            results = {'errors': [], 'success_count': 0, 'error_count': 0}
+            results = {'success': 0, 'errors': []}
 
-            with current_app.test_client() as client:
-                for analytics in analytics:
-                    # Simulate a POST request to the single analytics creation endpoint
-                    response = client.post('/api/analytics', json=analytics)
+            for data in data_list:
+                try:
+                    # Validation checks
+                    if not all(k in data for k in ('park_id', 'user_id', 'stars', 'review_text')):
+                        raise ValueError('Missing required fields')
 
-                    if response.status_code == 200:
-                        results['success_count'] += 1
-                    else:
-                        results['errors'].append(response.get_json())
-                        results['error_count'] += 1
+                    if not isinstance(data['stars'], int) or not (1 <= data['stars'] <= 5):
+                        raise ValueError('Stars must be an integer between 1 and 5')
+                    if not isinstance(data['review_text'], str) or not data['review_text'].strip():
+                        raise ValueError('review_text must be a non-empty string')
 
-            # Return the results of the bulk creation process
+                    # Create and save
+                    analytics = Analytics(
+                        park_id=data['park_id'],
+                        user_id=data['user_id'],
+                        stars=data['stars'],
+                        review_text=data['review_text']
+                    )
+                    analytics.create()
+                    results['success'] += 1
+                except ValueError as e:
+                    results['errors'].append({'data': data, 'error': str(e)})
+            
             return jsonify(results)
-        
+
+    class _ANALYTICS(Resource):
+        @token_required()
         def get(self):
             """
-            Retrieve all analytics.
+            Retrieve overall analytics data (reviews, stars) for all parks.
             """
-            # Find all the analytics
             analytics = Analytics.query.all()
-            # Prepare a JSON list of all the analytics, using list comprehension
-            json_ready = []
-            for analytics in analytics:
-                analytics_data = analytics.read()
-                json_ready.append(analytics_data)
-            # Return a JSON list, converting Python dictionaries to JSON format
-            return jsonify(json_ready)
+            return jsonify([entry.read() for entry in analytics])
 
-    class _MODERATOR(Resource):
-        @token_required()
-        def post(self):
-            """
-            Add a moderator to a analytics.
-            """
-            # Obtain the request data sent by the RESTful client API
-            data = request.get_json()
-            # Find the analytics to update
-            analytics = Analytics.query.get(data['analytics_id'])
-            if analytics is None:
-                return {'message': 'Analytics not found'}, 404
-            # Find the user to add as a moderator
-            user = User.query.get(data['user_id'])
-            if user is None:
-                return {'message': 'User not found'}, 404
-            # Add the user as a moderator
-            analytics.moderators.append(user)
-            # Save the analytics object using the Object Relational Mapper (ORM) method defined in the model
-            analytics.update()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify(analytics.read())
+api.add_resource(AnalyticsAPI._CRUD, '/analytics')
+api.add_resource(AnalyticsAPI._BULK_CRUD, '/analytics/bulk')
+api.add_resource(AnalyticsAPI._ANALYTICS, '/analytics/summary')
 
-        @token_required()
-        def delete(self):
-            """
-            Remove a moderator from a analytics.
-            """
-            # Obtain the request data sent by the RESTful client API
-            data = request.get_json()
-            # Find the analytics to update
-            analytics = Analytics.query.get(data['analytics_id'])
-            if analytics is None:
-                return {'message': 'Analytics not found'}, 404
-            # Find the user to remove as a moderator
-            user = User.query.get(data['user_id'])
-            if user is None:
-                return {'message': 'User not found'}, 404
-            # Remove the user as a moderator
-            analytics.moderators.remove(user)
-            # Save the analytics object using the Object Relational Mapper (ORM) method defined in the model
-            analytics.update()
-            # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify(analytics.read())
-
-    class _BULK_FILTER(Resource):
-        @token_required()
-        def post(self):
-            """
-            Retrieve all analytics under a section by section park_id.
-            """
-            # Obtain and validate the request data sent by the RESTful client API
-            data = request.get_json()
-            if data is None:
-                return {'message': 'Section data not found'}, 400
-            if 'section_name' not in data:
-                return {'message': 'Section name not found'}, 400
-            
-            # Find the section by name
-            section = Section.query.filter_by(_name=data['section_name']).first()
-            if section is None:
-                return {'message': 'Section not found'}, 404
-            
-            # Find all analytics under the section
-            analytics = Analytics.query.filter_by(_user_id=section.id).all()
-            # Prepare a JSON list of all the analytics, using list comprehension
-            json_ready = [analytics.read() for analytics in analytics]
-            # Return a JSON list, converting Python dictionaries to JSON format
-            return jsonify(json_ready)
-
-    class _FILTER(Resource):
-        @token_required()
-        def post(self):
-            """
-            Retrieve a single analytics by analytics name.
-            """
-            # Obtain and validate the request data sent by the RESTful client API
-            data = request.get_json()
-            if data is None:
-                return {'message': 'Analytics data not found'}, 400
-            if 'analytics_name' not in data:
-                return {'message': 'Analytics name not found'}, 400
-            
-            # Find the analytics by name
-            analytics = Analytics.query.filter_by(_name=data['analytics_name']).first()
-            if analytics is None:
-                return {'message': 'Analytics not found'}, 404
-            
-            # Convert Python object to JSON format 
-            json_ready = analytics.read()
-            # Return a JSON restful response to the client
-            return jsonify(json_ready)
-
-    """
-    Map the _CRUD, _BULK_CRUD, _BULK_FILTER, and _FILTER classes to the API endpoints for /analytics, /analytics, /analytics/filter, and /analytics/filter.
-    - The API resource class inherits from flask_restful.Resource.
-    - The _CRUD class defines the HTTP methods for the API.
-    - The _BULK_CRUD class defines the bulk operations for the API.
-    - The _BULK_FILTER class defines the endpoints for filtering analytics by section name.
-    - The _FILTER class defines the endpoints for filtering a specific analytics by analytics name.
-    """
-    api.add_resource(_CRUD, '/analytics')
-    api.add_resource(_BULK_CRUD, '/analytics')
-    api.add_resource(_BULK_FILTER, '/analytics/filter')
-    api.add_resource(_FILTER, '/analytics/filter')
