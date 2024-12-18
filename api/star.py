@@ -4,8 +4,8 @@ from flask_restful import Api, Resource  # used for REST API building
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.rating import Rating  # Assuming a Rating model exists
-from model.post import Post  # Importing the Post model
+from model.rating import Rating  
+from model.post import Post 
 
 # Blueprint for Post API
 star_api = Blueprint('star_api', __name__, url_prefix='/api')
@@ -74,13 +74,10 @@ class PostAPI:
             if not post:
                 return {'message': 'Post not found'}, 404
             
-            avg_rating = db.session.query(func.avg(Rating.stars)).filter_by(post_id=post.id).scalar()
-
             ratings = Rating.query.filter_by(post_id=post.id).all()
             json_ready = [rating.read() for rating in ratings]
 
             return jsonify({
-                "average_rating": avg_rating or 0,
                 "ratings": json_ready
             })
 
