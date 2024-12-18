@@ -2,7 +2,6 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy.orm import relationship
 
-# Assuming app and db are defined in your __init__.py
 from __init__ import db
 
 class Rating(db.Model):
@@ -46,4 +45,3 @@ class Rating(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-# Don't forget to create the table with `db.create_all()` in your app setup.
