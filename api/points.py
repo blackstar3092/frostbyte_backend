@@ -1,83 +1,152 @@
-import jwt
-from flask import Blueprint, request, jsonify, g
+from flask import Flask, request, jsonify, Blueprint
 from flask_restful import Api, Resource
 from datetime import datetime
-from __init__ import app
-from api.jwt_authorize import token_required
-from model.quiz_result import QuizResult
 
-# Define the Blueprint for the Quiz API
-quiz_api = Blueprint('quiz_api', __name__, url_prefix='/api')
+# Initialize Flask app
+app = Flask(__name__)
 
-# Connect the Api object to the Blueprint
-api = Api(quiz_api)
+# Blueprint for API routes, ensuring modularity
+points_api = Blueprint('points_api', __name__, url_prefix='/api')
 
-class QuizAPI:
+# Attach Flask-RESTful API to the Blueprint
+api = Api(points_api)
+
+# In-memory storage for user points and park assignments
+# Note: In production, replace this with a database like PostgreSQL or MongoDB
+user_points = {}
+
+def assign_park(points):
     """
-    Define the API CRUD endpoints for Quiz Result management.
-    """
+    Assign a national park based on the user's total quiz points.
     
-    class _Submit(Resource):
-        @token_required()
+    Args:
+        points (int): Total quiz points submitted by the user.
+
+    Returns:
+        str: The name of the assigned national park.
+    """
+    if 70 <= points <= 130:
+        return "Denali National Park"
+    elif 140 <= points <= 170:
+        return "Grand Canyon National Park"
+    elif 180 <= points <= 220:
+        return "Redwood National Park"
+    elif 230 <= points <= 280:
+        return "Buck Island Reef National Monument"
+    else:
+        return "No matching park found"
+
+class PointsAPI:
+    """
+    Flask-RESTful API class for managing quiz points and park assignments.
+    """
+
+    class SubmitPoints(Resource):
+        """
+        Endpoint to handle point submissions.
+        - Allows users to submit their quiz points along with their user ID.
+        - Stores the data in in-memory storage.
+        - Assigns a park based on the quiz points.
+        """
         def post(self):
-            """
-            Submit quiz points and calculate the matching park.
-            """
-            current_user = g.current_user
+            # Parse incoming JSON data
             data = request.get_json()
 
-            if not data or 'points' not in data:
-                return {'message': 'Points are required.'}, 400
+            # Validate presence of required fields
+            if not data:
+                return jsonify({"message": "Request body cannot be empty."}), 400
+            if 'user_id' not in data or 'points' not in data:
+                return jsonify({"message": "'user_id' and 'points' are required fields."}), 400
 
+            # Extract fields from the request
+            user_id = data['user_id']
             points = data['points']
 
-            # Determine the matching national park
-            if 70 <= points <= 130:
-                park = "Denali National Park"
-            elif 140 <= points <= 170:
-                park = "Grand Canyon National Park"
-            elif 180 <= points <= 220:
-                park = "Redwood National Park"
-            elif 230 <= points <= 280:
-                park = "Buck Island Reef National Monument"
-            else:
-                return {'message': 'Points out of range.'}, 400
+            # Validate field types
+            if not isinstance(user_id, int):
+                return jsonify({"message": "'user_id' must be an integer."}), 400
+            if not isinstance(points, int):
+                return jsonify({"message": "'points' must be an integer."}), 400
 
-            # Check if the user already has a quiz result
-            existing_result = QuizResult.query.filter_by(user_id=current_user.id).first()
-            if existing_result:
-                existing_result.points = points
-                existing_result.park = park
-                existing_result.update()
-                return jsonify(existing_result.read())
+            # Store the user's points and assign a park
+            user_points[user_id] = {
+                "points": points,
+                "park": assign_park(points),
+                "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
 
-            # Create a new quiz result
-            new_result = QuizResult(user_id=current_user.id, points=points, park=park)
-            new_result.create()
-            return jsonify(new_result.read())
+            # Respond with the stored data
+            return jsonify({
+                "message": "Points successfully submitted.",
+                "user_id": user_id,
+                "points": points,
+                "park": user_points[user_id]["park"]
+            }), 201
 
-    class _GetResult(Resource):
-        @token_required()
+    class GetPoints(Resource):
+        """
+        Endpoint to retrieve stored quiz points and park assignment for a specific user.
+        """
+        def get(self, user_id):
+            try:
+                # Ensure user_id is an integer
+                user_id = int(user_id)
+            except ValueError:
+                return jsonify({"message": "'user_id' must be an integer."}), 400
+
+            # Check if the user exists in storage
+            if user_id not in user_points:
+                return jsonify({"message": f"No data found for user_id {user_id}."}), 404
+
+            # Retrieve and return the user's data
+            user_data = user_points[user_id]
+            return jsonify({
+                "user_id": user_id,
+                "points": user_data["points"],
+                "park": user_data["park"],
+                "timestamp": user_data["timestamp"]
+            })
+
+    class GetAllPoints(Resource):
+        """
+        Endpoint to retrieve all users' stored quiz points and park assignments.
+        """
         def get(self):
-            """
-            Retrieve the user's quiz result.
-            """
-            current_user = g.current_user
-            result = QuizResult.query.filter_by(user_id=current_user.id).first()
+            # Check if storage is empty
+            if not user_points:
+                return jsonify({"message": "No data available."}), 404
 
-            if not result:
-                return {'message': 'No quiz result found.'}, 404
+            # Return all stored data
+            return jsonify(user_points)
 
-            return jsonify(result.read())
+    class DeletePoints(Resource):
+        """
+        Endpoint to delete quiz points and park assignment for a specific user.
+        """
+        def delete(self, user_id):
+            try:
+                # Ensure user_id is an integer
+                user_id = int(user_id)
+            except ValueError:
+                return jsonify({"message": "'user_id' must be an integer."}), 400
 
-# Map API endpoints
-api.add_resource(QuizAPI._Submit, '/points/submit')
-api.add_resource(QuizAPI._GetResult, '/points/get')
+            # Check if the user exists in storage
+            if user_id not in user_points:
+                return jsonify({"message": f"No data found for user_id {user_id}."}), 404
 
-# How to Test:
-# 1. Run the Flask server.
-# 2. Use Postman to send POST requests to '/api/points/submit' with payload:
-#    {
-#        "points": 185
-#    }
-# 3. Send GET requests to '/api/points/get' to retrieve the stored quiz result.
+            # Delete the user's data
+            del user_points[user_id]
+            return jsonify({"message": f"Data for user_id {user_id} successfully deleted."}), 200
+
+# Add API resources to Flask-RESTful API
+api.add_resource(PointsAPI.SubmitPoints, '/points/submit')
+api.add_resource(PointsAPI.GetPoints, '/points/<user_id>')
+api.add_resource(PointsAPI.GetAllPoints, '/points/all')
+api.add_resource(PointsAPI.DeletePoints, '/points/<user_id>')
+
+# Register the Blueprint with the Flask app
+app.register_blueprint(points_api)
+
+if __name__ == '__main__':
+    # Run the Flask app in debug mode
+    app.run(debug=True)
