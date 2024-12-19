@@ -23,7 +23,7 @@ from api.group import group_api
 from api.section import section_api
 from api.gemini import gemini_api
 from api.student import student_api
-
+from api.points import points_api
 from api.vote import vote_api
 from api.about import about_api
 
@@ -46,7 +46,7 @@ app.register_blueprint(section_api)
 app.register_blueprint(vote_api)
 app.register_blueprint(gemini_api)
 app.register_blueprint(student_api)
-
+app.register_blueprint(points_api)
 
 
 # Tell Flask-Login the view function name of your login route
