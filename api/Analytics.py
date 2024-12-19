@@ -7,6 +7,7 @@ from api.jwt_authorize import token_required
 from api.Analytics import Analytics
 from model.user import User
 from model.section import Section
+from __init__ import db  # Ensure the database is imported
 
 analytics_api = Blueprint('analytics_api', __name__, url_prefix='/api')
 api = Api(analytics_api)
@@ -95,12 +96,30 @@ class AnalyticsAPI:
         @token_required()
         def get(self):
             """
-            Retrieve overall analytics data (reviews, stars) for all parks.
+            Retrieve overall analytics summary data (reviews, stars) for all parks.
             """
-            analytics = Analytics.query.all()
-            return jsonify([entry.read() for entry in analytics])
+            # Aggregate analytics data
+            analytics_summary = (
+                db.session.query(
+                    Analytics.park_id,
+                    db.func.avg(Analytics.stars).label('stars'),
+                    db.func.count(Analytics.id).label('total_reviews')
+                )
+                .group_by(Analytics.park_id)
+                .all()
+            )
 
+            # Format and return the response
+            return jsonify([
+                {
+                    "park_id": entry.park_id,
+                    "stars": round(entry.stars, 1),
+                    "total_reviews": entry.total_reviews
+                }
+                for entry in analytics_summary
+            ])
+
+# Add resources to the API
 api.add_resource(AnalyticsAPI._CRUD, '/analytics')
 api.add_resource(AnalyticsAPI._BULK_CRUD, '/analytics/bulk')
 api.add_resource(AnalyticsAPI._ANALYTICS, '/analytics/summary')
-
