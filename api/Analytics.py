@@ -6,8 +6,8 @@ from __init__ import app
 from api.jwt_authorize import token_required
 from api.Analytics import Analytics
 from model.user import User
-from model.section import Section
-from __init__ import db  # Ensure the database is imported
+from model.storereview import storereview
+from __init__ import db  
 
 analytics_api = Blueprint('analytics_api', __name__, url_prefix='/api')
 api = Api(analytics_api)
