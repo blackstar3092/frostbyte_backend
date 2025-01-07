@@ -35,6 +35,7 @@ from model.channel import Channel, initChannels
 from model.post import Post, initPosts
 from model.vote import Vote, initVotes
 from model.about import AboutModel
+from model.rating import Rating
 
 # register URIs for api endpoints
 app.register_blueprint(user_api)
