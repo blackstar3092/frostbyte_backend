@@ -1,4 +1,4 @@
-# model/somemodel.py
+from __init__ import db
 class AboutModel:
     def __init__(self):
         self.InfoDb = [
