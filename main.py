@@ -48,6 +48,7 @@ app.register_blueprint(vote_api)
 app.register_blueprint(gemini_api)
 app.register_blueprint(student_api)
 app.register_blueprint(points_api)
+app.register_blueprint(about_api)
 
 
 # Tell Flask-Login the view function name of your login route
