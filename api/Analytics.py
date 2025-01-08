@@ -147,3 +147,4 @@ class AnalyticsAPI:
 api.add_resource(AnalyticsAPI._CRUD, '/analytics')
 api.add_resource(AnalyticsAPI._BULK_CRUD, '/analytics/bulk')
 api.add_resource(AnalyticsAPI._ANALYTICS, '/analytics/summary')
+

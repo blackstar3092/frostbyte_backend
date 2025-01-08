@@ -5,6 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
+from api.Analytics import Analytics_api
+from __init__ import app
+app.register_blueprint(Analytics_api)
+
 
 # Load environment variables from .env file
 load_dotenv()
