@@ -10,8 +10,6 @@ from flask import current_app
 from werkzeug.security import generate_password_hash
 import shutil
 
-
-
 # import "objects" from "this" project
 from __init__ import app, db, login_manager  # Key Flask objects 
 # API endpoints
