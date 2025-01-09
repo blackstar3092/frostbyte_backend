@@ -24,6 +24,7 @@ from api.student import student_api
 from api.points import points_api
 from api.vote import vote_api
 from api.about import about_api
+from api.weather import weather_api
 
 # database Initialization functions
 from model.user import User, initUsers
@@ -47,6 +48,7 @@ app.register_blueprint(gemini_api)
 app.register_blueprint(student_api)
 app.register_blueprint(points_api)
 app.register_blueprint(about_api)
+app.register_blueprint(weather_api)
 
 
 # Tell Flask-Login the view function name of your login route
