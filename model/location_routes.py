@@ -4,7 +4,7 @@ location_bp = Blueprint('location', __name__)
 
 locations = []
 
-@location_bp.route('/api/save-location', methods=['POST'])
+@location_bp.route('http://127.0.0.1:4887/frostbyte_frontend/api/save-location', methods=['POST'])
 def save_location():
     data = request.get_json()
 
@@ -18,6 +18,6 @@ def save_location():
 
     return jsonify({"message": "Location saved successfully!"}), 200
 
-@location_bp.route('/api/get-locations', methods=['GET'])
+@location_bp.route('http://127.0.0.1:4887/frostbyte_frontend/api/get-locations', methods=['GET'])
 def get_locations():
     return jsonify({"locations": locations}), 200
