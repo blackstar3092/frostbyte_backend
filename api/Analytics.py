@@ -9,6 +9,9 @@ from model.user import User
 from model.storereview import storereview
 from __init__ import db
 
+app.register_blueprint(Analytics)
+
+
 # Define the Blueprint and API
 analytics_api = Blueprint('analytics_api', __name__, url_prefix='/api')
 api = Api(analytics_api)
@@ -147,4 +150,6 @@ class AnalyticsAPI:
 api.add_resource(AnalyticsAPI._CRUD, '/analytics')
 api.add_resource(AnalyticsAPI._BULK_CRUD, '/analytics/bulk')
 api.add_resource(AnalyticsAPI._ANALYTICS, '/analytics/summary')
+
+
 
