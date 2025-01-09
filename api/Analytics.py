@@ -8,13 +8,16 @@ from api.Analytics import Analytics
 from model.user import User
 from model.storereview import storereview
 from __init__ import db
+from flask import Blueprint
+from flask_restful import Api, Resource
 
-app.register_blueprint(Analytics)
+# Define the Blueprint (renamed for clarity)
+analytics_blueprint = Blueprint('analytics', __name__, url_prefix='/api')
+api = Api(analytics_blueprint)
 
+# Register the Blueprint with the app
+app.register_blueprint(analytics_blueprint)
 
-# Define the Blueprint and API
-analytics_api = Blueprint('analytics_api', __name__, url_prefix='/api')
-api = Api(analytics_api)
 
 
 class AnalyticsAPI:
