@@ -17,3 +17,7 @@ def save_location():
     locations.append({"lat": lat, "lng": lng})
 
     return jsonify({"message": "Location saved successfully!"}), 200
+
+@location_bp.route('/api/get-locations', methods=['GET'])
+def get_locations():
+    return jsonify({"locations": locations}), 200
