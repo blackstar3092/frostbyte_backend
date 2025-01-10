@@ -12,7 +12,7 @@ gemini_api = Blueprint('gemini_api', __name__, url_prefix='/api')
 api = Api(gemini_api)
       
 # Configure the API key (ensure the API_KEY environment variable is set)
-genai.configure(api_key="AIzaSyBOwK_K_HCD4lKh3ASmfuNhag_Vi0GwA_c")
+genai.configure(api_key="AIzaSyBm6rtktAW3ubyKD_3nQRHJoFUIV-XKTLQ")
 # Create the model with the configuration
 generation_config = {
     #controls the randomness of the model
