@@ -4,7 +4,7 @@ from flask_restful import Api, Resource  # used for REST API building
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.user import User
+from model.frostbyte import Frostbyte
 
 # Create a Blueprint for the user API
 user_api = Blueprint('user_api', __name__, url_prefix='/api')
@@ -55,7 +55,7 @@ class UserAPI:
             Retrieve all users.
             """
             current_user = g.current_user
-            users = User.query.all()  # extract all users from the database
+            users = Frostbyte.query.all()  # extract all users from the database
 
             # Prepare a JSON list of user dictionaries
             json_ready = []
@@ -91,7 +91,7 @@ class UserAPI:
                 return {'message': 'User ID is missing, or is less than 2 characters'}, 400
 
             # Setup minimal USER OBJECT
-            user_obj = User(name=name, uid=uid)
+            user_obj = Frostbyte(name=name, uid=uid)
 
             # Add user to database
             user = user_obj.create(body)  # pass the body elements to be saved in the database
@@ -123,7 +123,7 @@ class UserAPI:
                 if uid is None or uid == current_user.uid:
                     user = current_user  # Admin is updating themselves
                 else:
-                    user = User.query.filter_by(_uid=uid).first()
+                    user = Frostbyte.query.filter_by(_uid=uid).first()
                     if user is None:
                         return {'message': f'User {uid} not found'}, 404
             else:
@@ -141,7 +141,7 @@ class UserAPI:
             """
             body = request.get_json()
             uid = body.get('uid')
-            user = User.query.filter_by(_uid=uid).first()
+            user = Frostbyte.query.filter_by(_uid=uid).first()
             if user is None:
                 return {'message': f'User {uid} not found'}, 404
             json = user.read()
@@ -175,7 +175,7 @@ class UserAPI:
                     return {'message': 'Password is missing'}, 401
 
                 # Find user
-                user = User.query.filter_by(_uid=uid).first()
+                user = Frostbyte.query.filter_by(_uid=uid).first()
 
                 if user is None or not user.is_password(password):
                     return {'message': "Invalid user id or password"}, 401

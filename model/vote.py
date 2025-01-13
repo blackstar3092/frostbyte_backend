@@ -1,7 +1,7 @@
 from __init__ import db, app
 from sqlalchemy.exc import IntegrityError
 from model.post import Post
-from model.user import User
+from model.frostbyte import Frostbyte
 
 class Vote(db.Model):
     """
@@ -19,7 +19,7 @@ class Vote(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     _vote_type = db.Column(db.String(10), nullable=False)  # "upvote" or "downvote"
-    _user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)
     _post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
 
     def __init__(self, vote_type, user_id, post_id):

@@ -72,12 +72,3 @@ class PointsAPI:
 # Map endpoints to the API
 api.add_resource(PointsAPI._CRUD, '/quiz')
 api.add_resource(PointsAPI._ALL_SCORES, '/quizzes')
-
-# How to Test:
-# 1. Run the Flask server.
-# 2. Use Postman or a similar tool to send POST requests to '/api/quiz' with JSON payloads like:
-#    {
-#        "points": 150,
-#        "park": "Grand Canyon National Park"
-#    }
-# 3. Send GET requests to '/api/quiz' to verify stored results.

@@ -2,7 +2,7 @@
 from sqlite3 import IntegrityError
 from sqlalchemy import Text
 from __init__ import app, db
-from model.user import User
+from model.frostbyte import Frostbyte
 from model.group import Group
 
 class NestPost(db.Model):
@@ -24,7 +24,7 @@ class NestPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     _title = db.Column(db.String(255), nullable=False)
     _content = db.Column(Text, nullable=False)
-    _user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)
     _group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
     _image_url = db.Column(db.String(255), nullable=False)
 
@@ -82,7 +82,7 @@ class NestPost(db.Model):
         Returns:
             dict: A dictionary containing the post data, including user and group names.
         """
-        user = User.query.get(self._user_id)
+        user = Frostbyte.query.get(self._user_id)
         group = Group.query.get(self._group_id)
         data = {
             "id": self.id,

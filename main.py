@@ -27,7 +27,7 @@ from api.about import about_api
 from api.weather import weather_api
 
 # database Initialization functions
-from model.user import User, initUsers
+#from model.user import User, initUsers
 from model.section import Section, initSections
 from model.group import Group, initGroups
 from model.channel import Channel, initChannels
@@ -35,6 +35,8 @@ from model.post import Post, initPosts
 from model.vote import Vote, initVotes
 from model.about import AboutModel
 from model.rating import Rating
+from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
+
 
 # register URIs for api endpoints
 app.register_blueprint(user_api)
@@ -61,7 +63,7 @@ def unauthorized_callback():
 # register URIs for server pages
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return Frostbyte.query.get(int(user_id))
 
 @app.context_processor
 def inject_user():
@@ -78,7 +80,7 @@ def login():
     error = None
     next_page = request.args.get('next', '') or request.form.get('next', '')
     if request.method == 'POST':
-        user = User.query.filter_by(_uid=request.form['username']).first()
+        user = Frostbyte.query.filter_by(_uid=request.form['username']).first()
         if user and user.is_password(request.form['password']):
             login_user(user)
             if not is_safe_url(next_page):
@@ -103,16 +105,16 @@ def index():
     print("Home:", current_user)
     return render_template("index.html")
 
-@app.route('/users/table')
+@app.route('/user/table')
 @login_required
 def utable():
-    users = User.query.all()
+    users = Frostbyte.query.all()
     return render_template("utable.html", user_data=users)
 
 @app.route('/users/table2')
 @login_required
 def u2table():
-    users = User.query.all()
+    users = Frostbyte.query.all()
     return render_template("u2table.html", user_data=users)
 
 # Helper function to extract uploads for a user (ie PFP image)
@@ -123,7 +125,7 @@ def uploaded_file(filename):
 @app.route('/users/delete/<int:user_id>', methods=['DELETE'])
 @login_required
 def delete_user(user_id):
-    user = User.query.get(user_id)
+    user = Frostbyte.query.get(user_id)
     if user:
         user.delete()
         return jsonify({'message': 'User deleted successfully'}), 200
@@ -134,7 +136,7 @@ def reset_password(user_id):
     if current_user.role != 'Admin':
         return jsonify({'error': 'Unauthorized'}), 403
     
-    user = User.query.get(user_id)
+    user = Frostbyte.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
@@ -149,7 +151,7 @@ custom_cli = AppGroup('custom', help='Custom commands')
 # Define a command to run the data generation functions
 @custom_cli.command('generate_data')
 def generate_data():
-    initUsers()
+    initFrostbyte()
     initSections()
     initGroups()
     initChannels()
@@ -171,7 +173,7 @@ def backup_database(db_uri, backup_uri):
 def extract_data():
     data = {}
     with app.app_context():
-        data['users'] = [user.read() for user in User.query.all()]
+        data['users'] = [user.read() for user in Frostbyte.query.all()]
         data['sections'] = [section.read() for section in Section.query.all()]
         data['groups'] = [group.read() for group in Group.query.all()]
         data['channels'] = [channel.read() for channel in Channel.query.all()]
@@ -198,12 +200,58 @@ def load_data_from_json(directory='backup'):
 # Restore data to the new database
 def restore_data(data):
     with app.app_context():
-        users = User.restore(data['users'])
+        users = Frostbyte.restore(data['users'])
         _ = Section.restore(data['sections'])
         _ = Group.restore(data['groups'], users)
         _ = Channel.restore(data['channels'])
         _ = Post.restore(data['posts'])
     print("Data restored to the new database.")
+
+def create():
+    # optimize user time to see if uid exists
+    uid = input("Enter your user id:")
+    user = find_by_uid(uid)
+    try:
+        print("Found\n", user.read())
+        return
+    except:
+        pass # keep going
+    
+    # request value that ensure creating valid object
+    name = input("Enter your name:")
+    password = input("Enter your password")
+    
+    # Initialize User object before date
+    user = Frostbyte(name=name, 
+                uid=uid, 
+                password=password
+                )
+    
+    # create user.dob, fail with today as dob
+    dob = input("Enter your date of birth 'YYYY-MM-DD'")
+    try:
+        user.dob = datetime.strptime(dob, '%Y-%m-%d').date()
+    except ValueError:
+        user.dob = datetime.today()
+        print(f"Invalid date {dob} require YYYY-mm-dd, date defaulted to {user.dob}")
+           
+    # write object to database
+    with app.app_context():
+        try:
+            object = user.create()
+            print("Created\n", object.read())
+        except:  # error raised if object not created
+            print("Unknown error uid {uid}")
+        
+#create()
+
+def read():
+    with app.app_context():
+        table = Frostbyte.query.all()
+    json_ready = [user.read() for user in table] # "List Comprehensions", for each user add user.read() to list
+    return json_ready
+
+#read()
 
 # Define a command to backup data
 @custom_cli.command('backup_data')
@@ -217,7 +265,8 @@ def backup_data():
 def restore_data_command():
     data = load_data_from_json()
     restore_data(data)
-    
+
+
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)
         

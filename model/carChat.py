@@ -1,6 +1,6 @@
 from sqlite3 import IntegrityError
 from __init__ import app, db
-from model.user import User
+from model.frostbyte import Frostbyte
 
 class CarChat(db.Model):
     __tablename__ = 'carChats'

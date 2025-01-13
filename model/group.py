@@ -2,12 +2,12 @@
 from sqlite3 import IntegrityError
 from __init__ import app, db
 from model.section import Section
-from model.user import User
+from model.frostbyte import Frostbyte
 
 # Association table for the many-to-many relationship between Group and User (moderators)
 group_moderators = db.Table('group_moderators',
     db.Column('group_id', db.Integer, db.ForeignKey('groups.id'), primary_key=True),
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    db.Column('user_id', db.Integer, db.ForeignKey('frostbytes.id'), primary_key=True)
 )
 
 class Group(db.Model):
@@ -29,7 +29,7 @@ class Group(db.Model):
     _section_id = db.Column(db.Integer, db.ForeignKey('sections.id'), nullable=False)
 
     channels = db.relationship('Channel', backref='group', lazy=True)
-    moderators = db.relationship('User', secondary=group_moderators, lazy='subquery',
+    moderators = db.relationship('Frostbyte', secondary=group_moderators, lazy='subquery',
                                  backref=db.backref('moderated_groups', lazy=True))
     
     def __init__(self, name, section_id, moderators=None):
@@ -171,15 +171,15 @@ def initGroups():
         # Home Page Groups
         home_page_section = Section.query.filter_by(_name='Home Page').first()
         groups = [
-            Group(name='General', section_id=home_page_section.id, moderators=[User.query.get(1)]),
-            Group(name='Support', section_id=home_page_section.id, moderators=[User.query.get(1)])
+            Group(name='General', section_id=home_page_section.id, moderators=[Frostbyte.query.get(1)]),
+            Group(name='Support', section_id=home_page_section.id, moderators=[Frostbyte.query.get(1)])
         ]
         
         # Frostbyte Section
         frostbyte_section = Section.query.filter_by(_name='Frostbyte').first()
         groups += [
-            Group(name='Camping', section_id=frostbyte_section.id, moderators=[User.query.get(1)]),
-            Group(name='National Parks', section_id=frostbyte_section.id, moderators=[User.query.get(1)]),
+            Group(name='Camping', section_id=frostbyte_section.id, moderators=[Frostbyte.query.get(1)]),
+            Group(name='National Parks', section_id=frostbyte_section.id, moderators=[Frostbyte.query.get(1)]),
         ]
         
 

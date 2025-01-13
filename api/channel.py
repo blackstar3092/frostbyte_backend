@@ -6,7 +6,7 @@ from __init__ import app
 from api.jwt_authorize import token_required
 from model.channel import Channel
 from model.group import Group
-from model.user import User
+from model.frostbyte import Frostbyte
 
 """
 This Blueprint object is used to define APIs for the Channel model.

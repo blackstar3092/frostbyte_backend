@@ -5,7 +5,7 @@ from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
 from api.Analytics import Analytics
-from model.user import User
+from model.frostbyte import Frostbyte
 from model.storereview import storereview
 from __init__ import db
 from flask import Blueprint

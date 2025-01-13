@@ -4,7 +4,7 @@ from sqlite3 import IntegrityError
 from sqlalchemy import Text, JSON
 from sqlalchemy.exc import IntegrityError
 from __init__ import app, db
-from model.user import User
+from model.frostbyte import Frostbyte
 from model.channel import Channel
 
 class review(db.Model):
@@ -27,7 +27,7 @@ class review(db.Model):
     _title = db.Column(db.String(255), nullable=False)
     _comment = db.Column(db.String(255), nullable=False)
     _content = db.Column(JSON, nullable=False)
-    _user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)
     _channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False)
 
     def __init__(self, title, comment, user_id=None, channel_id=None, content={}, user_name=None, channel_name=None):
@@ -83,7 +83,7 @@ class review(db.Model):
         Returns:
             dict: A dictionary containing the review data, including user and channel names.
         """
-        user = User.query.get(self._user_id)
+        user = Frostbyte.query.get(self._user_id)
         channel = Channel.query.get(self._channel_id)
         data = {
             "id": self.id,
@@ -112,7 +112,7 @@ class review(db.Model):
         title = inputs._title
         content = inputs._content
         channel_id = inputs._channel_id
-        user_name = User.query.get(inputs._user_id).name if inputs._user_id else None
+        user_name = Frostbyte.query.get(inputs._user_id).name if inputs._user_id else None
         channel_name = Channel.query.get(inputs._channel_id).name if inputs._channel_id else None
 
         # If channel_name is provided, look up the corresponding channel_id
@@ -122,7 +122,7 @@ class review(db.Model):
                 channel_id = channel.id
                 
         if user_name:
-            user = User.query.filter_by(_name=user_name).first()
+            user = Frostbyte.query.filter_by(_name=user_name).first()
             if user:
                 user_id = user.id
             else:
