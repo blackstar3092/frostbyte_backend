@@ -149,10 +149,9 @@ class AnalyticsAPI:
                 return {'message': f'An error occurred: {str(e)}'}, 500
 
 
-# Add resources to the API
-api.add_resource(AnalyticsAPI._CRUD, '/Analytics')
-api.add_resource(AnalyticsAPI._BULK_CRUD, '/Analytics/bulk')
-api.add_resource(AnalyticsAPI._ANALYTICS, '/Analytics/summary')
-
+    # Add resources to the API
+    api.add_resource(_CRUD, '/Analytics')
+    api.add_resource(_BULK_CRUD, '/Analytics/bulk')
+    api.add_resource(_ANALYTICS, '/Analytics/summary')
 
 
