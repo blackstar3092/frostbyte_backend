@@ -5,7 +5,7 @@ from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
 from model.group import Group
-from model.user import User
+from model.frostbyte import Frostbyte
 from model.section import Section
 
 """
@@ -160,7 +160,7 @@ class GroupAPI:
             if group is None:
                 return {'message': 'Group not found'}, 404
             # Find the user to add as a moderator
-            user = User.query.get(data['user_id'])
+            user = Frostbyte.query.get(data['user_id'])
             if user is None:
                 return {'message': 'User not found'}, 404
             # Add the user as a moderator
@@ -182,7 +182,7 @@ class GroupAPI:
             if group is None:
                 return {'message': 'Group not found'}, 404
             # Find the user to remove as a moderator
-            user = User.query.get(data['user_id'])
+            user = Frostbyte.query.get(data['user_id'])
             if user is None:
                 return {'message': 'User not found'}, 404
             # Remove the user as a moderator

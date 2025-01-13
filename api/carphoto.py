@@ -1,7 +1,7 @@
 from flask import Blueprint, g, request
 from flask_restful import Api, Resource
 from api.jwt_authorize import token_required
-from model.user import User
+from model.frostbyte import Frostbyte
 from model.carPhoto import car_base64_decode, car_base64_upload, car_file_delete, default_car_decode
 
 car_api = Blueprint('car_photo_api', __name__, url_prefix='/api/id')
@@ -74,7 +74,7 @@ class _CarPhoto(Resource):
         if not user_uid:
             return {'message': 'UID required.'}, 400
 
-        user = User.query.filter_by(_uid=user_uid).first()
+        user = Frostbyte.query.filter_by(_uid=user_uid).first()
         if not user:
             return {'message': 'User not found'}, 404
 

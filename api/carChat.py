@@ -5,7 +5,7 @@ from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
 from model.carChat import CarChat
-from model.user import User
+from model.frostbyte import Frostbyte
 from model.section import Section
 
 # """

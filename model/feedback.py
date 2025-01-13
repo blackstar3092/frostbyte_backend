@@ -2,7 +2,7 @@
 from sqlite3 import IntegrityError
 from sqlalchemy import Text
 from __init__ import app, db
-from model.user import User
+from model.frostbyte import Frostbyte
 from model.post import Post
 
 class Feedback(db.Model):
@@ -21,7 +21,7 @@ class Feedback(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     _content = db.Column(Text, nullable=False)
-    _user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)
     _post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
 
     def __init__(self, content, user_id, post_id):
@@ -74,7 +74,7 @@ class Feedback(db.Model):
         Returns:
             dict: A dictionary containing the post data, including user and post names.
         """
-        user = User.query.get(self._user_id)
+        user = Frostbyte.query.get(self._user_id)
         post = Post.query.get(self._post_id)
         data = {
             "id": self.id,

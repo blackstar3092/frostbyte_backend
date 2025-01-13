@@ -1,7 +1,7 @@
 from flask import Blueprint, g, request
 from flask_restful import Api, Resource
 from api.jwt_authorize import token_required
-from model.user import User
+from model.frostbyte import Frostbyte
 from model.pfp import pfp_base64_decode, pfp_base64_upload, pfp_file_delete
 
 pfp_api = Blueprint('pfp_api', __name__, url_prefix='/api/id')
@@ -72,7 +72,7 @@ class _PFP(Resource):
         if not user_uid:
             return {'message': 'UID required.'}, 400
 
-        user = User.query.filter_by(_uid=user_uid).first()
+        user = Frostbyte.query.filter_by(_uid=user_uid).first()
         if not user:
             return {'message': 'User not found'}, 404
 
