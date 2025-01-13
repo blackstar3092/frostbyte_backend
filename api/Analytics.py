@@ -11,11 +11,11 @@ from __init__ import db
 from flask import Blueprint
 from flask_restful import Api, Resource
 
-# Define the Blueprint (renamed for clarity)
+
 analytics_blueprint = Blueprint('analytics', __name__, url_prefix='/api')
 api = Api(analytics_blueprint)
 
-# Register the Blueprint with the app
+
 app.register_blueprint(analytics_blueprint)
 
 
@@ -31,7 +31,7 @@ class AnalyticsAPI:
                 current_user = g.current_user  # Provided by token_required
                 data = request.get_json()
 
-                # Validate the payload
+                
                 required_fields = ['park_id', 'user_id', 'stars', 'review_text']
                 if not all(field in data for field in required_fields):
                     return {'message': 'Missing required fields'}, 400
@@ -150,9 +150,9 @@ class AnalyticsAPI:
 
 
 # Add resources to the API
-api.add_resource(AnalyticsAPI._CRUD, '/analytics')
-api.add_resource(AnalyticsAPI._BULK_CRUD, '/analytics/bulk')
-api.add_resource(AnalyticsAPI._ANALYTICS, '/analytics/summary')
+api.add_resource(AnalyticsAPI._CRUD, '/Analytics')
+api.add_resource(AnalyticsAPI._BULK_CRUD, '/Analytics/bulk')
+api.add_resource(AnalyticsAPI._ANALYTICS, '/Analytics/summary')
 
 
 
