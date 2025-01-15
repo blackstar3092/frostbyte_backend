@@ -14,18 +14,18 @@ class Weather(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
 
-    post = relationship("Location", back_populates="Weather reports")
+post = relationship("Location", back_populates="weather_reports")
 
-    def __init__(self, temperature, humidity, location_id):
+def __init__(self, temperature, humidity, location_id):
         self.temperature = temperature
         self.humidity = humidity
         self.location_id = location_id
     
-    def create(self):
+def create(self):
         db.session.add(self)
         db.session.commit()
         
-    def read(self):
+def read(self):
         return {
             "id": self.id,
             "temperature": self.temperature,
@@ -34,9 +34,9 @@ class Weather(db.Model):
             "timestamp": self.timestamp.isoformat()
         }
 
-    def update(self):
+def update(self):
         db.session.commit()
 
-    def delete(self):
+def delete(self):
         db.session.delete(self)
         db.session.commit()
