@@ -1,6 +1,6 @@
 import json
 from flask import Blueprint, request, jsonify
-import pdb  # Import the pdb module for debugging
+import pdb  
 
 location_bp = Blueprint('location', __name__)
 
@@ -19,7 +19,7 @@ locations = read_locations()
 
 @location_bp.route('/api/save-location', methods=['POST'])
 def save_location():
-    pdb.set_trace()  # Breakpoint 1
+    pdb.set_trace()  
     data = request.get_json()
 
     lat = data.get('lat')
@@ -31,10 +31,10 @@ def save_location():
     locations.append({"lat": lat, "lng": lng})
     write_locations(locations)  
 
-    pdb.set_trace()  # Breakpoint 2
+    pdb.set_trace()  
     return jsonify({"message": "Location saved successfully!"}), 200
 
 @location_bp.route('/api/get-locations', methods=['GET'])
 def get_locations():
-    pdb.set_trace()  # Breakpoint 3
+    pdb.set_trace() 
     return jsonify({"locations": locations}), 200
