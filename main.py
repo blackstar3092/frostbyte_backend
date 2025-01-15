@@ -9,6 +9,8 @@ from flask_login import current_user, login_required
 from flask import current_app
 from werkzeug.security import generate_password_hash
 import shutil
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
 # import "objects" from "this" project
 from __init__ import app, db, login_manager  # Key Flask objects 
@@ -36,7 +38,7 @@ from model.vote import Vote, initVotes
 from model.about import AboutModel
 from model.rating import Rating
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
-
+from model.weather import Weather  # Assuming your Weather model is in a 'model' folder
 
 # register URIs for api endpoints
 app.register_blueprint(user_api)
@@ -274,3 +276,7 @@ app.cli.add_command(custom_cli)
 if __name__ == "__main__":
     # change name for testing
     app.run(debug=True, host="0.0.0.0", port="8887")
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
