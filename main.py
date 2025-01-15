@@ -42,6 +42,7 @@ from model.rating import Rating
 from model.analytics import Analytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.gemini import AImessage
+from model.parklocations import ParkLocation
 
 
 # register URIs for api endpoints
