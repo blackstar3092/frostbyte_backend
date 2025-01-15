@@ -30,7 +30,8 @@ class Post(db.Model):
     _content = db.Column(JSON, nullable=False)
     _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)
     _channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False)
-    ratings = relationship("Rating", back_populates="post")
+    
+    ratings = relationship('Rating', back_populates='post')
 
     def __init__(self, title, comment, user_id=None, channel_id=None, content={}, user_name=None, channel_name=None):
         """
@@ -98,55 +99,54 @@ class Post(db.Model):
         return data
     
 
-    def update(self):
+    def update(self, post_data):
         """
         Updates the post object with new data.
         
         Args:
-            inputs (dict): A dictionary containing the new data for the post.
+            post_data (dict): A dictionary containing the new data for the post.
         
         Returns:
             Post: The updated post object, or None on error.
         """
         
-        inputs = Post.query.get(self.id)
-        
-        title = inputs._title
-        content = inputs._content
-        channel_id = inputs._channel_id
-        user_name = Frostbyte.query.get(inputs._user_id).name if inputs._user_id else None
-        channel_name = Channel.query.get(inputs._channel_id).name if inputs._channel_id else None
+        # Ensure proper unpacking of data from the dictionary
+        title = post_data.get("title", None)
+        comment = post_data.get("comment", None)
+        content = post_data.get("content", None)
+        user_name = post_data.get("user_name", None)
+        channel_name = post_data.get("channel_name", None)
 
-        # If channel_name is provided, look up the corresponding channel_id
-        if channel_name:
-            channel = Channel.query.filter_by(_name=channel_name).first()
-            if channel:
-                channel_id = channel.id
-                
         if user_name:
-            user = Frostbyte.query.filter_by(_name=user_name).first()
+            user = Frostbyte.query.filter_by(name=user_name).first()
             if user:
-                user_id = user.id
+                self._user_id = user.id
             else:
-                return None
+                return None  # User not found, handle the error as needed
 
-        # Update table with new data
+        if channel_name:
+            channel = Channel.query.filter_by(name=channel_name).first()
+            if channel:
+                self._channel_id = channel.id
+            else:
+                return None  # Channel not found, handle the error as needed
+
+        # Update fields with new values if available
         if title:
             self._title = title
-        if content:
-            self._content = content
-        if channel_id:
-            self._channel_id = channel_id
-        if user_id:
-            self._user_id = user_id
+        if comment:
+            self._comment = comment
+        if content is not None:
+            self._content = content  # Use `is not None` to allow empty strings or values
 
         try:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            logging.warning(f"IntegrityError: Could not update post with title '{title}' due to missing channel_id.")
+            logging.warning(f"IntegrityError: Could not update post with title '{title}' due to missing or invalid data.")
             return None
         return self
+
     
     def delete(self):
         """

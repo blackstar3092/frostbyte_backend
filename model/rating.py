@@ -3,6 +3,8 @@ from datetime import datetime
 from sqlalchemy.orm import relationship
 from model.post import Post
 from __init__ import db
+from api.jwt_authorize import token_required
+
 
 class Rating(db.Model):
     __tablename__ = 'ratings'
@@ -57,4 +59,5 @@ class Rating(db.Model):
             rating = Rating(stars=data["stars"], user_id=data["user_id"], post_id=data["post_id"])
             db.session.add(rating)
         db.session.commit()
+    
     
