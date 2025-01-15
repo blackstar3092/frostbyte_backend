@@ -39,6 +39,8 @@ from model.about import AboutModel
 from model.rating import Rating
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.weather import Weather  # Assuming your Weather model is in a 'model' folder
+from model.gemini import AImessage
+
 
 # register URIs for api endpoints
 app.register_blueprint(user_api)
