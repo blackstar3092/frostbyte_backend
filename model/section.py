@@ -135,7 +135,7 @@ def initSections():
         """Tester data for table"""
        
         s1 = Section(name='Home Page') 
-        s2 = Section(name='Frostbyte')
+        s2 = Section(name='FrostbyteSection')
         sections = [s1, s2]
         
         for section in sections:

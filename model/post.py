@@ -30,9 +30,9 @@ class Post(db.Model):
     _content = db.Column(JSON, nullable=False)
     _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)
     _channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False)
-    
-    ratings = relationship('Rating', back_populates='post')
 
+    ratings = relationship('Rating', back_populates='post_reference', lazy=True)
+    
     def __init__(self, title, comment, user_id=None, channel_id=None, content={}, user_name=None, channel_name=None):
         """
         Constructor, 1st step in object creation.
@@ -99,51 +99,81 @@ class Post(db.Model):
         return data
     
 
-    def update(self, post_data):
+    '''def update(self):
         """
         Updates the post object with new data.
         
         Args:
-            post_data (dict): A dictionary containing the new data for the post.
+            inputs (dict): A dictionary containing the new data for the post.
         
         Returns:
             Post: The updated post object, or None on error.
         """
         
-        # Ensure proper unpacking of data from the dictionary
-        title = post_data.get("title", None)
-        comment = post_data.get("comment", None)
-        content = post_data.get("content", None)
-        user_name = post_data.get("user_name", None)
-        channel_name = post_data.get("channel_name", None)
+        inputs = Post.query.get(self.id)
+        
+        title = inputs._title
+        content = inputs._content
+        channel_id = inputs._channel_id
+        user_name = Frostbyte.query.get(inputs._user_id).name if inputs._user_id else None
+        channel_name = Channel.query.get(inputs._channel_id).name if inputs._channel_id else None
 
-        if user_name:
-            user = Frostbyte.query.filter_by(name=user_name).first()
-            if user:
-                self._user_id = user.id
-            else:
-                return None  # User not found, handle the error as needed
-
+        # If channel_name is provided, look up the corresponding channel_id
         if channel_name:
-            channel = Channel.query.filter_by(name=channel_name).first()
+            channel = Channel.query.filter_by(_name=channel_name).first()
             if channel:
-                self._channel_id = channel.id
+                channel_id = channel.id
+                
+        if user_name:
+            user = Frostbyte.query.filter_by(_name=user_name).first()
+            if user:
+                user_id = user.id
             else:
-                return None  # Channel not found, handle the error as needed
+                return None
 
-        # Update fields with new values if available
+        # Update table with new data
         if title:
             self._title = title
-        if comment:
-            self._comment = comment
-        if content is not None:
-            self._content = content  # Use `is not None` to allow empty strings or values
+        if content:
+            self._content = content
+        if channel_id:
+            self._channel_id = channel_id
+        if user_id:
+            self._user_id = user_id
 
         try:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            logging.warning(f"IntegrityError: Could not update post with title '{title}' due to missing or invalid data.")
+            logging.warning(f"IntegrityError: Could not update post with title '{title}' due to missing channel_id.")
+            return None
+        return self'''
+    
+
+    def update(self, inputs):
+        """
+        Updates the post object with new data.
+        
+        Args:
+            inputs (dict): A dictionary containing the new data for the post.
+        
+        Returns:
+            Post: The updated post object, or None on error.
+        """
+        if not isinstance(inputs, dict):
+            return None  # Return None if inputs are invalid
+
+        # Update fields from inputs
+        for key, value in inputs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+        # Commit changes to the database
+        try:
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            logging.warning(f"IntegrityError: Could not update post due to {str(e)}.")
             return None
         return self
 
@@ -165,6 +195,37 @@ class Post(db.Model):
             db.session.rollback()
             raise e
         
+    ''' @staticmethod
+    def restore(data):
+        for post_data in data:
+            _ = post_data.pop('id', None)  # Remove 'id' from post_data
+            title = post_data.get("title", None)
+            post = Post.query.filter_by(_title=title).first()
+            if post:
+                post.update(post_data)
+            else:
+                post = Post(**post_data)
+                post.update(post_data)
+                post.create()''' 
+    
+    ''' @staticmethod
+    def restore(data):
+        """
+        Restores posts from the given data.
+        
+        Args:
+            data (list): A list of dictionaries representing posts to restore.
+        """
+        for post_data in data:
+            post_id = post_data.pop('id', None)  # Remove 'id' from post_data if present
+            post = Post.query.filter_by(_title=post_data.get("title")).first()
+
+            if post:
+                post.update(post_data)  # Update existing post
+            else:
+                new_post = Post(**post_data)  # Create new post
+                new_post.create()'''
+    
     @staticmethod
     def restore(data):
         for post_data in data:
@@ -177,6 +238,7 @@ class Post(db.Model):
                 post = Post(**post_data)
                 post.update(post_data)
                 post.create()
+
         
 def initPosts():
     """

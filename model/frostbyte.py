@@ -508,7 +508,7 @@ def initFrostbyte():
         u2 = Frostbyte(name='Grace Hopper', uid=app.config['DEFAULT_USER'], password=app.config['DEFAULT_PASSWORD'], pfp='hop.png')
         u3 = Frostbyte(name='Nicholas Tesla', uid='niko', password='123niko', pfp='niko.png' )
         users = [u1, u2, u3]
-        
+
         for user in users:
             try:
                 user.create()
