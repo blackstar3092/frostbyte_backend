@@ -81,6 +81,21 @@ class StarAPI:
                 "ratings": json_ready
             })
 
+    class _InitRatings(Resource):
+        def post(self):
+            sample_ratings = [
+                {"stars": 5, "user_id": 1, "post_id": 1},
+                {"stars": 4, "user_id": 2, "post_id": 2},
+                {"stars": 3, "user_id": 3, "post_id": 3},
+                {"stars": 2, "user_id": 4, "post_id": 1},
+                {"stars": 1, "user_id": 5, "post_id": 2},
+            ]
+            for data in sample_ratings:
+                rating = Rating(stars=data["stars"], user_id=data["user_id"], post_id=data["post_id"])
+                db.session.add(rating)
+                db.session.commit()
+                return {'message': 'Ratings initialized successfully'}, 201
+
     # Map resources to endpoints
     api.add_resource(_CRUD, '/post')  # Handles post creation and retrieval
     api.add_resource(_RATING, '/rating')  # Handles ratings

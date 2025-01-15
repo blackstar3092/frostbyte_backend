@@ -57,3 +57,4 @@ class Rating(db.Model):
             rating = Rating(stars=data["stars"], user_id=data["user_id"], post_id=data["post_id"])
             db.session.add(rating)
         db.session.commit()
+    

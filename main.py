@@ -41,7 +41,6 @@ from model.about import AboutModel
 from model.rating import Rating
 from model.analytics import Analytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
-from model.weather import Weather  # Assuming your Weather model is in a 'model' folder
 from model.gemini import AImessage
 
 
@@ -276,11 +275,6 @@ def restore_data_command():
 
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)
-
-with app.app_context():
-    db.create_all()  # Ensure tables exist
-    Rating.initialize_sample_data_ratings()
-    print("Sample data initialized in the ratings table.")
         
 # this runs the flask application on the development server
 if __name__ == "__main__":
