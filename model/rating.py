@@ -45,3 +45,15 @@ class Rating(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    @staticmethod
+    def initialize_sample_data_ratings():
+        """Static method to initialize the ratings table with sample data."""
+        sample_ratings = [
+            {"stars": 5, "user_id": 1, "post_id": 1},
+            {"stars": 4, "user_id": 2, "post_id": 2},
+            {"stars": 3, "user_id": 3, "post_id": 3},
+        ]
+        for data in sample_ratings:
+            rating = Rating(stars=data["stars"], user_id=data["user_id"], post_id=data["post_id"])
+            db.session.add(rating)
+        db.session.commit()

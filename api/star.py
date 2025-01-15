@@ -11,7 +11,7 @@ from model.post import Post
 star_api = Blueprint('star_api', __name__, url_prefix='/api')
 api = Api(star_api)
 
-class PostAPI:
+class StarAPI:
     class _CRUD(Resource):
         @token_required()
         def post(self):
@@ -22,7 +22,7 @@ class PostAPI:
             if not data or 'title' not in data or 'comment' not in data or 'channel_id' not in data:
                 return {'message': 'Missing required fields'}, 400
 
-            post = Post(data['title'], data['comment'], current_user.id, data['channel_id'], data.get('content', {}))
+            post = Rating(data['title'], data['comment'], current_user.id, data['channel_id'], data.get('content', {}))
             post.create()
             return jsonify(post.read())
 
@@ -33,7 +33,7 @@ class PostAPI:
             if not data or 'id' not in data:
                 return {'message': 'Post ID not found'}, 400
 
-            post = Post.query.get(data['id'])
+            post = Rating.query.get(data['id'])
             if not post:
                 return {'message': 'Post not found'}, 404
 
@@ -53,7 +53,7 @@ class PostAPI:
             if not isinstance(stars, int) or stars < 1 or stars > 5:
                 return {'message': 'Invalid star rating. Must be an integer between 1 and 5.'}, 400
 
-            post = Post.query.get(data['post_id'])
+            post = Rating.query.get(data['post_id'])
             if not post:
                 return {'message': 'Post not found'}, 404
 
@@ -70,7 +70,7 @@ class PostAPI:
             if not data or 'post_id' not in data:
                 return {'message': 'Post ID is required'}, 400
 
-            post = Post.query.get(data['post_id'])
+            post = Rating.query.get(data['post_id'])
             if not post:
                 return {'message': 'Post not found'}, 404
             
@@ -82,5 +82,6 @@ class PostAPI:
             })
 
     # Map resources to endpoints
-    api.add_resource(_CRUD, '/post')
-    api.add_resource(_RATING, '/rating')
+    api.add_resource(_CRUD, '/post')  # Handles post creation and retrieval
+    api.add_resource(_RATING, '/rating')  # Handles ratings
+

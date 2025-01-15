@@ -27,6 +27,7 @@ from api.points import points_api
 from api.vote import vote_api
 from api.about import about_api
 from api.weather import weather_api
+from api.star import star_api
 
 # database Initialization functions
 #from model.user import User, initUsers
@@ -55,6 +56,7 @@ app.register_blueprint(student_api)
 app.register_blueprint(points_api)
 app.register_blueprint(about_api)
 app.register_blueprint(weather_api)
+app.register_blueprint(star_api)
 
 
 # Tell Flask-Login the view function name of your login route
@@ -270,9 +272,13 @@ def restore_data_command():
     data = load_data_from_json()
     restore_data(data)
 
-
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)
+
+with app.app_context():
+    db.create_all()  # Ensure tables exist
+    Rating.initialize_sample_data_ratings()
+    print("Sample data initialized in the ratings table.")
         
 # this runs the flask application on the development server
 if __name__ == "__main__":
