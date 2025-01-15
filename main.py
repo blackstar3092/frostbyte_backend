@@ -26,6 +26,7 @@ from api.student import student_api
 from api.points import points_api
 from api.vote import vote_api
 from api.about import about_api
+from api.analytics import analytics_blueprint
 from api.weather import weather_api
 from api.star import star_api
 
@@ -38,6 +39,7 @@ from model.post import Post, initPosts
 from model.vote import Vote, initVotes
 from model.about import AboutModel
 from model.rating import Rating
+from model.analytics import Analytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.weather import Weather  # Assuming your Weather model is in a 'model' folder
 from model.gemini import AImessage
