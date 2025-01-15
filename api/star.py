@@ -81,8 +81,12 @@ class StarAPI:
                 "ratings": json_ready
             })
 
-    class _InitRatings(Resource):
-        def post(self):
+        def initialize_sample_data_ratings(cls):
+        # Check if ratings already exist to avoid duplicates
+            if cls.query.count() > 0:
+                print("Sample data already exists in the ratings table.")
+                return  # Skip adding data if it already exists
+
             sample_ratings = [
                 {"stars": 5, "user_id": 1, "post_id": 1},
                 {"stars": 4, "user_id": 2, "post_id": 2},
@@ -90,11 +94,13 @@ class StarAPI:
                 {"stars": 2, "user_id": 4, "post_id": 1},
                 {"stars": 1, "user_id": 5, "post_id": 2},
             ]
+            
             for data in sample_ratings:
                 rating = Rating(stars=data["stars"], user_id=data["user_id"], post_id=data["post_id"])
                 db.session.add(rating)
-                db.session.commit()
-                return {'message': 'Ratings initialized successfully'}, 201
+            
+            db.session.commit()
+            print("Sample data initialized in the ratings table.")
 
     # Map resources to endpoints
     api.add_resource(_CRUD, '/post')  # Handles post creation and retrieval
