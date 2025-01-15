@@ -285,6 +285,3 @@ if __name__ == "__main__":
     # change name for testing
     app.run(debug=True, host="0.0.0.0", port="8887")
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
