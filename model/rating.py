@@ -11,12 +11,12 @@ class Rating(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     stars = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)    
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-
-    post = relationship("Post", back_populates="ratings")
+    # Change backref to something other than 'post'
+    post_reference = relationship('Post', back_populates='ratings')
 
     def __init__(self, stars, user_id, post_id):
         self.stars = stars
@@ -47,17 +47,15 @@ class Rating(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    @staticmethod
-    def initialize_sample_data_ratings():
-        """Static method to initialize the ratings table with sample data."""
-        sample_ratings = [
-            {"stars": 5, "user_id": 1, "post_id": 1},
-            {"stars": 4, "user_id": 2, "post_id": 2},
-            {"stars": 3, "user_id": 3, "post_id": 3},
-        ]
-        for data in sample_ratings:
-            rating = Rating(stars=data["stars"], user_id=data["user_id"], post_id=data["post_id"])
-            db.session.add(rating)
-        db.session.commit()
-    
-    
+
+def initRatings():
+    from model.rating import Rating  # Import inside the function to avoid circular imports
+    sample_ratings = [
+        {"stars": 5, "user_id": 1, "post_id": 1},
+        {"stars": 4, "user_id": 2, "post_id": 2},
+        {"stars": 3, "user_id": 3, "post_id": 3},
+    ]
+    for data in sample_ratings:
+        rating = Rating(stars=data["stars"], user_id=data["user_id"], post_id=data["post_id"])
+        db.session.add(rating)
+    db.session.commit()

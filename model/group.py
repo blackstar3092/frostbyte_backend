@@ -176,7 +176,7 @@ def initGroups():
         ]
         
         # Frostbyte Section
-        frostbyte_section = Section.query.filter_by(_name='Frostbyte').first()
+        frostbyte_section = Section.query.filter_by(_name='FrostbyteSection').first()
         groups += [
             Group(name='Camping', section_id=frostbyte_section.id, moderators=[Frostbyte.query.get(1)]),
             Group(name='National Parks', section_id=frostbyte_section.id, moderators=[Frostbyte.query.get(1)]),

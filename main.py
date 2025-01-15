@@ -38,7 +38,7 @@ from model.channel import Channel, initChannels
 from model.post import Post, initPosts
 from model.vote import Vote, initVotes
 from model.about import AboutModel
-from model.rating import Rating
+from model.rating import Rating, initRatings
 from model.analytics import Analytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.gemini import AImessage
@@ -165,6 +165,7 @@ def generate_data():
     initChannels()
     initPosts()
     initVotes()
+    initRatings()
     
 # Backup the old database
 def backup_database(db_uri, backup_uri):
@@ -276,11 +277,6 @@ def restore_data_command():
 
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)
-
-with app.app_context():
-    db.create_all()  # Ensure tables exist
-    Rating.initialize_sample_data_ratings()  # Add sample ratings only if they don't exist
-    print("App started and ratings sample data initialized.")
         
 # this runs the flask application on the development server
 if __name__ == "__main__":
