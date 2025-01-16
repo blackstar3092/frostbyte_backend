@@ -42,14 +42,14 @@ class ParkLocation(db.Model):
     @staticmethod
     def initialize_sample_data_parklocations():
         sample_locations = [
-            {name:  Grand Canyon South Rim ,  description :  The most popular and easily accessible part of the Grand Canyon. ,  latitude : 36.1069,  longitude : -112.1129},
-            { name :  Grand Canyon North Rim ,  description :  Less visited and more remote part of the Grand Canyon. ,  latitude : 36.2545,  longitude : -112.1325},
-            { name :  Grand Canyon West Rim ,  description :  Home to the Skywalk, a glass bridge over the canyon. ,  latitude : 36.0980,  longitude : -113.5353},
-            { name :  Havasu Falls ,  description :  A stunning waterfall located in the Havasupai Indian Reservation. ,  latitude : 36.2340,  longitude : -112.7421},
-            { name :  Desert View Watchtower ,  description :  An iconic stone tower offering panoramic views of the canyon. ,  latitude : 36.0290,  longitude : -112.0245}
+            {"name": "Grand Canyon South Rim", "description": "The most popular and easily accessible part of the Grand Canyon.", "latitude": 36.1069, "longitude": -112.1129},
+            {"name": "Grand Canyon North Rim", "description": "Less visited and more remote part of the Grand Canyon.", "latitude": 36.2545, "longitude": -112.1325},
+            {"name": "Grand Canyon West Rim", "description": "Home to the Skywalk, a glass bridge over the canyon.", "latitude": 36.0980, "longitude": -113.5353},
+            {"name": "Havasu Falls", "description": "A stunning waterfall located in the Havasupai Indian Reservation.", "latitude": 36.2340, "longitude": -112.7421},
+            {"name": "Desert View Watchtower", "description": "An iconic stone tower offering panoramic views of the canyon.", "latitude": 36.0290, "longitude": -112.0245}
         ]
         for loc in sample_locations:
-            location = ParkLocation(name=loc[ "name" ], description=loc["description"], latitude=loc["latitude"], longitude=loc["longitude"])
+            location = ParkLocation(name=loc["name"], description=loc["description"], latitude=loc["latitude"], longitude=loc["longitude"])
             db.session.add(location)
         db.session.commit()
 
