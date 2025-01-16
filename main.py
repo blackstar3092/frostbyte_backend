@@ -43,7 +43,8 @@ from model.analytics import Analytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.gemini import AIMessage, initAIMessage
 from model.parklocations import ParkLocation
-from model.campingPost import campingPost
+from model.camping_post import campingPost, initCampingPosts
+
 
 
 # register URIs for api endpoints
@@ -168,6 +169,7 @@ def generate_data():
     initVotes()
     initRatings()
     initAIMessage()
+    initCampingPosts()
     
 # Backup the old database
 def backup_database(db_uri, backup_uri):
