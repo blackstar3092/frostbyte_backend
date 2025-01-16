@@ -28,8 +28,9 @@ class Post(db.Model):
     _title = db.Column(db.String(255), nullable=False)
     _comment = db.Column(db.String(255), nullable=False)
     _content = db.Column(JSON, nullable=False)
-    _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)
-    _channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False)
+    _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id', ondelete='SET NULL'), nullable=True)
+    _channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False, default=1)  # Replace 1 with a valid default ID
+
 
     ratings = relationship('Rating', back_populates='post_reference', lazy=True)
     
