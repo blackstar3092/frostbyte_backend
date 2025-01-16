@@ -61,7 +61,7 @@ app.register_blueprint(points_api)
 app.register_blueprint(about_api)
 app.register_blueprint(weather_api)
 app.register_blueprint(star_api)
-
+app.register_blueprint(parklocations_api)
 
 # Tell Flask-Login the view function name of your login route
 login_manager.login_view = "login"
@@ -243,9 +243,9 @@ def create():
     # create user.dob, fail with today as dob
     dob = input("Enter your date of birth 'YYYY-MM-DD'")
     try:
-        user.dob = datetime.strptime(dob, '%Y-%m-%d').date()
+        user.dob = "datetime".strptime(dob, '%Y-%m-%d').date()
     except ValueError:
-        user.dob = datetime.today()
+        user.dob = "datetime".today()
         print(f"Invalid date {dob} require YYYY-mm-dd, date defaulted to {user.dob}")
            
     # write object to database
