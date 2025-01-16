@@ -43,6 +43,7 @@ from model.analytics import Analytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.gemini import AIMessage, initAIMessage
 from model.parklocations import ParkLocation
+from model.campingPost import campingPost
 
 
 # register URIs for api endpoints
