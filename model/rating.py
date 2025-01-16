@@ -47,6 +47,30 @@ class Rating(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    @staticmethod
+    def restore(data):
+        """
+        Restore ratings from the provided data.
+        If a rating exists, update it. Otherwise, create a new rating.
+        """
+        for rating_data in data:
+            _ = rating_data.pop('id', None)  # Remove 'id' to avoid conflicts
+            stars = rating_data.get("stars")
+            user_id = rating_data.get("user_id")
+            post_id = rating_data.get("post_id")
+            
+            # Check if the rating already exists
+            rating = Rating.query.filter_by(user_id=user_id, post_id=post_id).first()
+            if rating:
+                # Update the existing rating
+                rating.stars = stars
+                rating.update()  # Commit the changes to the database
+            else:
+                # Create a new rating
+                new_rating = Rating(stars=stars, user_id=user_id, post_id=post_id)
+                new_rating.create()  # Save the new rating to the database
+
+
 
 def initRatings():
     from model.rating import Rating  # Import inside the function to avoid circular imports

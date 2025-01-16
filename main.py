@@ -42,7 +42,7 @@ from model.rating import Rating, initRatings
 from model.analytics import Analytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.gemini import AIMessage, initAIMessage
-from model.parklocations import ParkLocation
+#from model.parklocations import ParkLocation
 from model.camping_post import campingPost, initCampingPosts
 
 
@@ -61,7 +61,7 @@ app.register_blueprint(points_api)
 app.register_blueprint(about_api)
 app.register_blueprint(weather_api)
 app.register_blueprint(star_api)
-app.register_blueprint(parklocations_api)
+#app.register_blueprint(parklocations_api)
 
 # Tell Flask-Login the view function name of your login route
 login_manager.login_view = "login"
