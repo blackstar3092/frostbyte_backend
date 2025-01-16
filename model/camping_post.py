@@ -47,16 +47,22 @@ class campingPost(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    @staticmethod
-    def initialize_sample_data_campingPosts():
-        sample_campingPosts = [
-            {"title": "Tundra Biome", "comment": "I surprisinly enjoyed campying in the Tundra!", "user_id": 1, "channel_id": 5},
-            {"title": "Not the best trip", "comment": "Camping in the desert is not for the weak. ", "user_id": 2, "channel_id": 8},
-        ]
-        for loc in sample_campingPosts:
-            campingPost = campingPost(title=loc["title"], comment=loc["comment"], user_id=loc["user_id"], channel_id=loc["channel_id"])
-            db.session.add(campingPost)
-        db.session.commit()
+def initCampingPosts():
+    from model.camping_post import campingPost
+    with app.app_context():
+        """Create database and tables"""
+        db.create_all()
 
-def initialize_sample_campingPosts():
-    campingPost.initialize_sample_data_campingPosts()
+        """Tester data for camping posts"""
+        post1 = campingPost(title="Desert Adventure", comment="Surprisingly enjoyed camping in the desert", user_id=1, channel_id=8)
+        post2 = campingPost(title="Beach Camping", comment="highly reccomend", user_id=2, channel_id=7)
+        posts = [post1, post2]
+
+    for post in posts:
+        try:
+            post.create()
+            print("Created camping post: {post.title}")
+        except IntegrityError:
+            """Fails with bad or duplicate data"""
+            db.session.rollback()
+            print("Error creating camping post: {post.title}")
