@@ -41,7 +41,7 @@ from model.about import AboutModel
 from model.rating import Rating, initRatings
 from model.analytics import Analytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
-from model.gemini import AImessage
+from model.gemini import AIMessage, initAIMessage
 from model.parklocations import ParkLocation
 
 
@@ -166,6 +166,7 @@ def generate_data():
     initPosts()
     initVotes()
     initRatings()
+    initAIMessage()
     
 # Backup the old database
 def backup_database(db_uri, backup_uri):
