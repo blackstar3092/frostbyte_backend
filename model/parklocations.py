@@ -1,57 +1,42 @@
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-from __init__ import db
+import json
+from flask import Blueprint, request, jsonify
+from app import db  # Import db object from app.py
+from sqlalchemy import Integer, String
 
-class ParkLocation(db.Model):
-    __tablename__ = 'parklocations'
+# Define the blueprint
+location_bp = Blueprint('location', __name__)
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.String(500), nullable=True)
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+# Define the Location model
+class Location(db.Model):
+    id = db.Column(Integer, primary_key=True)
+    lat = db.Column(db.Float, nullable=False)
+    lng = db.Column(db.Float, nullable=False)
 
-    def __init__(self, name, description, latitude, longitude):
-        self.name = name
-        self.description = description
-        self.latitude = latitude
-        self.longitude = longitude
+    def __repr__(self):
+        return f"<Location {self.id}, {self.lat}, {self.lng}>"
 
-    def create(self):
-        db.session.add(self)
-        db.session.commit()
-        
-    def read(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-            "timestamp": self.timestamp.isoformat()
-        }
+# Route to save a location
+@location_bp.route('/api/save-location', methods=['POST'])
+def save_location():
+    data = request.get_json()
 
-    def update(self):
-        db.session.commit()
+    lat = data.get('lat')
+    lng = data.get('lng')
 
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+    if lat is None or lng is None:
+        return jsonify({"error": "Invalid data"}), 400
 
-    @staticmethod
-    def initialize_sample_data_parklocations():
-        sample_locations = [
-            {"name": "Grand Canyon South Rim", "description": "The most popular and easily accessible part of the Grand Canyon.", "latitude": 36.1069, "longitude": -112.1129},
-            {"name": "Grand Canyon North Rim", "description": "Less visited and more remote part of the Grand Canyon.", "latitude": 36.2545, "longitude": -112.1325},
-            {"name": "Grand Canyon West Rim", "description": "Home to the Skywalk, a glass bridge over the canyon.", "latitude": 36.0980, "longitude": -113.5353},
-            {"name": "Havasu Falls", "description": "A stunning waterfall located in the Havasupai Indian Reservation.", "latitude": 36.2340, "longitude": -112.7421},
-            {"name": "Desert View Watchtower", "description": "An iconic stone tower offering panoramic views of the canyon.", "latitude": 36.0290, "longitude": -112.0245}
-        ]
-        for loc in sample_locations:
-            location = ParkLocation(name=loc["name"], description=loc["description"], latitude=loc["latitude"], longitude=loc["longitude"])
-            db.session.add(location)
-        db.session.commit()
+    # Create a new Location object and add to the database
+    new_location = Location(lat=lat, lng=lng)
+    db.session.add(new_location)
+    db.session.commit()
 
-def initialize_sample_parklocations():
-    ParkLocation.initialize_sample_data_parklocations()
+    return jsonify({"message": "Location saved successfully!"}), 200
+
+# Route to get all locations
+@location_bp.route('/api/get-locations', methods=['GET'])
+def get_locations():
+    locations = Location.query.all()  # Get all locations from the database
+    locations_list = [{"id": loc.id, "lat": loc.lat, "lng": loc.lng} for loc in locations]
+
+    return jsonify({"locations": locations_list}), 200
