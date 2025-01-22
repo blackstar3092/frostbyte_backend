@@ -15,7 +15,7 @@ def save_location():
         return jsonify({"error": "Invalid data, lat and lng are required"}), 400
 
     # Create a new Location object and add it to the database
-    new_location = Location(lat=lat, lng=lng)
+    new_location = location.api(lat=lat, lng=lng)
     db.session.add(new_location)
     db.session.commit()
 
@@ -25,7 +25,7 @@ def save_location():
 @location_api.route('/api/get-locations', methods=['GET'])
 def get_locations():
     # Query the database for all locations
-    locations = Location.query.all()
+    locations = location_api.query.all()
     locations_list = [{"id": loc.id, "lat": loc.lat, "lng": loc.lng} for loc in locations]
 
     return jsonify({"locations": locations_list}), 200
