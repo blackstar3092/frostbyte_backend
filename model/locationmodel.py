@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 # Initialize Flask and SQLAlchemy
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///locations.db'  # Use SQLite database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///frostbyte_table.db'  # Use frostbyte_table.db as the database
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
