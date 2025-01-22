@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True, origins='*')
 
 # Set up database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///locations.db'  # Using SQLite for simplicity
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///frostbyte_table.db'  # Use frostbyte_table.db as the database
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable warnings
 
 # Initialize SQLAlchemy
@@ -34,25 +34,3 @@ def save_location():
 
     # Create a new Location object and add it to the database
     new_location = Location(lat=lat, lng=lng)
-    db.session.add(new_location)
-    db.session.commit()
-
-    return jsonify({"message": "Location saved successfully!"}), 200
-
-# Route to get all locations (GET request)
-@app.route('/api/get-locations', methods=['GET'])
-def get_locations():
-    locations = Location.query.all()
-    locations_list = [{"id": loc.id, "lat": loc.lat, "lng": loc.lng} for loc in locations]
-
-    return jsonify({"locations": locations_list}), 200
-
-# Initialize database tables manually
-def initialize_database():
-    with app.app_context():
-        db.create_all()  # Create the tables in the database
-        print("Location tables initialized.")
-
-if __name__ == '__main__':
-    initialize_database()  # Initialize the tables before starting the app
-    app.run(port=5002)  # Run the app
