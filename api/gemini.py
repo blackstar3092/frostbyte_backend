@@ -1,96 +1,130 @@
 import jwt
+import os
 from flask import Blueprint, request, jsonify, current_app, Response, g
 from flask_restful import Api, Resource  # used for REST API building
 from datetime import datetime
-from __init__ import app
+from __init__ import db, app
 from api.jwt_authorize import token_required
 import google.generativeai as genai
+from dotenv import load_dotenv
+from model.gemini import AIMessage
 
-# create a blueprint for gemini API
+
+# Define Flask Blueprint and API
 gemini_api = Blueprint('gemini_api', __name__, url_prefix='/api')
-# Create an Api object and associate it with the Blueprint
 api = Api(gemini_api)
-      
-# Configure the API key (ensure the API_KEY environment variable is set)
-genai.configure(api_key="AIzaSyBm6rtktAW3ubyKD_3nQRHJoFUIV-XKTLQ")
-# Create the model with the configuration
-generation_config = {
-    #controls the randomness of the model
-    "temperature": 1.0,
-    "top_p": 1,
-    "top_k": 50,
-    "max_output_tokens": 1000,
-    "response_mime_type": "text/plain",
-}
-# Create the model
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    generation_config=generation_config,
-    # Define the system instructions
-    system_instruction=(
-        "You are an AI expert specializing in camping advice. You have the knowledge of park rangers and survival specialists."
-        "You are knowledgeable about camping in national parks, especially in tundras, deserts, valleys, mountains, and forests." 
-        "You provide expert guidance on the best camping gear and brands, strategies for sourcing food in the wild, essential survival skills, and practical tips and tricks for a safe and enjoyable outdoor experience."
-        "Maintain a friendly and supportive tone suitable for campers of all levels."
-        "inform the users about the best camping brands and cheaper alternatives."
-        "Your responses are short, concise, and easy to understand."
-        "You use diction that high school students can understand."
-        "You DO NOT give responses longer than 4 sentences."
-    ),
-)
-# Define the chatbot resource
+
+# Load environment variables
+load_dotenv()
+
+# Initialize the Generative AI client
+genai.api_key = os.getenv("API_KEY")
+
+
 class Chatbot(Resource):
 
-    # Initialize the chatbot
     def __init__(self):
-        # Initialize the conversation history
-        self.history: list[dict[str, list[str]]] = []
-        # Start the chat session
-        self.chat_session = model.start_chat(history=self.history)  # Persistent session
+        self.history = []
 
-    # Define the maximum history length
-    MAX_HISTORY = 50  
-    # Update the conversation history
-    def update_history(self, role: str, message: str):
-        # check if the history is full
-        if len(self.history) >= self.MAX_HISTORY:
-            # Remove the oldest entry
-            self.history.pop(0)  
-        #updates the conversation history by adding another entry
-        self.history.append({"role": role, "parts": [message]})
-
-    # Handle the POST request
-    def post(self):
+    def generate_ai_response(self, user_input):
+        """Generates a response from the Google Generative AI model."""
         try:
-            # Check if the user input is provided
+            response = genai.chat(
+                messages=[{"role": "user", "content": user_input}],
+                temperature=0.7,
+                max_tokens=100
+            )
+            return response["messages"][0]["content"]
+        except Exception as e:
+            print(f"Error generating AI response: {str(e)}")
+            return "Sorry, I couldn't process that."
+
+    def post(self):
+        """Handles POST requests to send a message and get a response."""
+        try:
             data = request.get_json()
+            if not data:
+                return jsonify({"error": "Invalid JSON"}), 400
+
             user_input = data.get("user_input")
+
             if not user_input:
-                # Return an error if the user input is missing
                 return jsonify({"error": "User input is required"}), 400
 
-            # Get the response from the model
-            response = self.chat_session.send_message(user_input)
-            model_response = response.text.rstrip("\n")
+            # Generate AI response using Google Generative AI
+            response_text = self.generate_ai_response(user_input)
 
-            # Update the conversation history
+            # Save user input and AI response to history and database
             self.update_history("user", user_input)
-            self.update_history("assistant", model_response)
+            self.update_history("assistant", response_text)
 
-            # Return the response
             return jsonify({
-                # 
                 "user_input": user_input,
-                # 
-                "model_response": model_response,
+                "model_response": response_text
             })
-        # Handle exceptions
         except Exception as e:
-            import traceback
-            print(f"Error occurred: {str(e)}")
-            traceback.print_exc()  # Log the full traceback
             return jsonify({"error": str(e)}), 500
-        
-# Add the resource to the API
-api.add_resource(Chatbot, '/gemini')
-chatbot_api_instance = Chatbot()
+
+    def put(self):
+        """Handles PUT requests to update an existing message by ID."""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"error": "Invalid JSON"}), 400
+
+            message_id = data.get("id")
+            new_message = data.get("user_input")
+
+            if not message_id or not new_message:
+                return jsonify({"error": "Message ID and new message content are required"}), 400
+
+            # Find the message by ID
+            message = AIMessage.query.get(message_id)
+            if not message:
+                return jsonify({"error": "Message not found"}), 404
+
+            # Update the message content
+            message.message = new_message
+            db.session.commit()
+
+            return jsonify({"message": "Message updated successfully"})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    def delete(self):
+        """Handles DELETE requests to delete a message by ID."""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"error": "Invalid JSON"}), 400
+
+            message_id = data.get("id")
+            if not message_id:
+                return jsonify({"error": "Message ID is required"}), 400
+
+            # Find the message by ID
+            message = AIMessage.query.get(message_id)
+            if not message:
+                return jsonify({"error": "Message not found"}), 404
+
+            # Delete the message
+            db.session.delete(message)
+            db.session.commit()
+
+            # Return a 204 No Content to indicate successful deletion
+            return '', 204
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    def update_history(self, role: str, message: str):
+        """Update the conversation history and save messages to the database."""
+        ai_message = AIMessage(
+            message=message,
+            author=role,
+            category="response" if role == "assistant" else "user"
+        )
+        ai_message.create()
+
+
+# Add Chatbot resource to the API
+api.add_resource(Chatbot, '/chatbot')
