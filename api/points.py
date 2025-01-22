@@ -1,29 +1,64 @@
-from flask import Flask, request, jsonify, Blueprint
+from flask import Flask, Blueprint, request, jsonify, g
+from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
 from datetime import datetime
+from api.jwt_authorize import token_required
 
-# Initialize Flask app
+# Initialize Flask app and database
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///quiz.db'  # Example SQLite database
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Blueprint for API routes
+db = SQLAlchemy(app)
+
+# Blueprint for the Quiz API
 points_api = Blueprint('points_api', __name__, url_prefix='/api')
-
-# Attach Flask-RESTful API to the Blueprint
 api = Api(points_api)
 
-# In-memory storage for quiz data (to be replaced with a database in production)
-user_points = {}
+# User model
+class User(db.Model):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), nullable=False, unique=True)
+    email = db.Column(db.String(100), nullable=False, unique=True)
+    password = db.Column(db.String(200), nullable=False)
+    quiz_scores = db.relationship('QuizScore', back_populates='user')
+
+# QuizScore model
+class QuizScore(db.Model):
+    __tablename__ = 'quiz_scores'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    points = db.Column(db.Integer, nullable=False)
+    park = db.Column(db.String(100), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', back_populates='quiz_scores')
+
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def read(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "points": self.points,
+            "park": self.park,
+            "timestamp": self.timestamp.isoformat()
+        }
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+# Utility function to assign park
 
 def assign_park(points):
-    """
-    Assign a national park based on the user's total quiz points.
-
-    Args:
-        points (int): Total quiz points submitted by the user.
-
-    Returns:
-        str: The name of the assigned national park.
-    """
     if 70 <= points <= 130:
         return "Denali National Park"
     elif 140 <= points <= 170:
@@ -35,103 +70,67 @@ def assign_park(points):
     else:
         return "No matching park found"
 
+# API Resources
 class PointsAPI:
-    """
-    Flask-RESTful API class for managing quiz points and park assignments.
-    """
-
-    class SubmitPoints(Resource):
-        """
-        Endpoint to submit quiz points.
-        """
+    class _CRUD(Resource):
+        @token_required()
         def post(self):
-            # Parse JSON data from request
+            current_user = g.current_user
             data = request.get_json()
 
-            # Validate data presence and required fields
-            if not data:
-                return jsonify({"message": "Request body cannot be empty."}), 400
-            if 'user_id' not in data or 'points' not in data:
-                return jsonify({"message": "'user_id' and 'points' are required fields."}), 400
+            if not data or 'points' not in data:
+                return {'message': 'Points are required'}, 400
 
-            # Extract user_id and points
-            user_id = data.get('user_id')
-            points = data.get('points')
+            points = data['points']
+            park = assign_park(points)
 
-            # Validate data types
-            if not isinstance(user_id, int) or not isinstance(points, int):
-                return jsonify({"message": "'user_id' and 'points' must be integers."}), 400
+            existing_score = QuizScore.query.filter_by(user_id=current_user.id).first()
+            if existing_score:
+                existing_score.points = points
+                existing_score.park = park
+                existing_score.update()
+                return jsonify(existing_score.read())
 
-            # Store data and assign park
-            user_points[user_id] = {
-                "points": points,
-                "park": assign_park(points),
-                "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            }
+            new_score = QuizScore(user_id=current_user.id, points=points, park=park)
+            new_score.create()
+            return jsonify(new_score.read())
 
-            return jsonify({
-                "message": "Points successfully submitted.",
-                "user_id": user_id,
-                "points": points,
-                "park": user_points[user_id]["park"]
-            }), 201
-
-    class GetPoints(Resource):
-        """
-        Endpoint to retrieve a user's points and park assignment.
-        """
-        def get(self, user_id):
-            try:
-                user_id = int(user_id)  # Validate user_id as integer
-            except ValueError:
-                return jsonify({"message": "'user_id' must be an integer."}), 400
-
-            if user_id not in user_points:
-                return jsonify({"message": f"No data found for user_id {user_id}."}), 404
-
-            user_data = user_points[user_id]
-            return jsonify({
-                "user_id": user_id,
-                "points": user_data["points"],
-                "park": user_data["park"],
-                "timestamp": user_data["timestamp"]
-            })
-
-    class GetAllPoints(Resource):
-        """
-        Endpoint to retrieve all users' points and park assignments.
-        """
+        @token_required()
         def get(self):
-            if not user_points:
-                return jsonify({"message": "No data available."}), 404
+            current_user = g.current_user
+            score = QuizScore.query.filter_by(user_id=current_user.id).first()
+            if not score:
+                return {'message': 'Quiz result not found'}, 404
 
-            return jsonify(user_points)
+            return jsonify(score.read())
 
-    class DeletePoints(Resource):
-        """
-        Endpoint to delete a user's quiz data.
-        """
-        def delete(self, user_id):
-            try:
-                user_id = int(user_id)  # Validate user_id as integer
-            except ValueError:
-                return jsonify({"message": "'user_id' must be an integer."}), 400
+        @token_required()
+        def delete(self):
+            current_user = g.current_user
+            score = QuizScore.query.filter_by(user_id=current_user.id).first()
+            if not score:
+                return {'message': 'Quiz result not found'}, 404
 
-            if user_id not in user_points:
-                return jsonify({"message": f"No data found for user_id {user_id}."}), 404
+            score.delete()
+            return {'message': 'Quiz result deleted successfully.'}, 200
 
-            del user_points[user_id]
-            return jsonify({"message": f"Data for user_id {user_id} successfully deleted."}), 200
+    class _ALL_SCORES(Resource):
+        @token_required()
+        def get(self):
+            scores = QuizScore.query.all()
+            results = [score.read() for score in scores]
+            return jsonify(results)
 
-# Add resources to API
-api.add_resource(PointsAPI.SubmitPoints, '/points/submit')
-api.add_resource(PointsAPI.GetPoints, '/points/<user_id>')
-api.add_resource(PointsAPI.GetAllPoints, '/points/all')
-api.add_resource(PointsAPI.DeletePoints, '/points/<user_id>')
+# Register API endpoints
+api.add_resource(PointsAPI._CRUD, '/quiz')
+api.add_resource(PointsAPI._ALL_SCORES, '/quizzes')
 
-# Register the Blueprint with the app
+# Register Blueprint
 app.register_blueprint(points_api)
 
 if __name__ == '__main__':
-    # Run the Flask app
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    # Initialize the database
+    with app.app_context():
+        db.create_all()
+
+    app.run(debug=True, host="0.0.0.0", port=8887)
