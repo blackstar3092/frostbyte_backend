@@ -3,56 +3,55 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from __init__ import db, app  # Ensure these imports are correct
 
+
 class AIMessage(db.Model):
     __tablename__ = 'ai_messages'
-
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    author = db.Column(db.String(50), nullable=False, default="AI")  # "AI" or "User"
+    author = db.Column(db.String(50), nullable=False, default="AI")
     category = db.Column(db.String(50), nullable=False, default="response")
-    
+
     def __init__(self, message, author="AI", category="response"):
         self.message = message
         self.author = author
         self.category = category
 
     def create(self):
-        """Save the AI message to the database."""
+        """Create a new AIMessage and save it to the database."""
         db.session.add(self)
         db.session.commit()
 
     def read(self):
-        """Convert the AI message object to a dictionary for JSON serialization."""
+        """Return a dictionary representation of the message."""
         return {
             "id": self.id,
             "message": self.message,
             "timestamp": self.timestamp.isoformat(),
             "author": self.author,
-            "category": self.category,
+            "category": self.category
         }
 
     def update(self, updates):
-        """Update AI message fields dynamically."""
+        """Update the AIMessage fields."""
         for key, value in updates.items():
-            if hasattr(self, key) and key != "id":  # Avoid updating the primary key
+            if hasattr(self, key) and key != "id":
                 setattr(self, key, value)
         db.session.commit()
 
     def delete(self):
-        """Delete the AI message from the database."""
+        """Delete the AIMessage from the database."""
         db.session.delete(self)
         db.session.commit()
 
-def initAIMessage():
-    """
-    Initializes the ai_messages table and inserts sample data if it does not exist.
-    """
+# Initialize the AIMessage table
+def initAIMessage(app):
     with app.app_context():
-        db.create_all()  # Ensure the table exists
-
-        # Check if messages already exist to prevent duplicate entries
+        db.create_all()
         if AIMessage.query.first() is None:
-            sample_message = AIMessage(message="Hello, How Can I help?", author="AI")
+            sample_message = AIMessage(
+                message="Hello, How Can I help?",
+                author="AI"
+            )
             db.session.add(sample_message)
             db.session.commit()
