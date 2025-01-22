@@ -1,36 +1,25 @@
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
+# location_app.py
+from flask import Flask
 from flask_cors import CORS
+from db import db  # Import db from the new db.py file
 
 # Initialize the app
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins='*')
 
 # Set up database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///frostbyte_table.db'  # Use frostbyte_table.db as the database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///locations.db'  # Correct path for your database
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable warnings
 
-# Initialize SQLAlchemy
-db = SQLAlchemy(app)
+# Initialize SQLAlchemy with the app
+db.init_app(app)
 
-# Define the Location model (for the database table)
-class Location(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    lat = db.Column(db.Float, nullable=False)
-    lng = db.Column(db.Float, nullable=False)
+# Import blueprints
+from api.location import location_api  # Make sure this import is correct
 
-    def __repr__(self):
-        return f"<Location {self.id}, {self.lat}, {self.lng}>"
+# Register blueprints
+app.register_blueprint(location_api)
 
-# Route to save a location (POST request)
-@app.route('/api/save-location', methods=['POST'])
-def save_location():
-    data = request.get_json()
-    lat = data.get('lat')
-    lng = data.get('lng')
-
-    if lat is None or lng is None:
-        return jsonify({"error": "Invalid data, lat and lng are required"}), 400
-
-    # Create a new Location object and add it to the database
-    new_location = Location(lat=lat, lng=lng)
+# Run the app
+if __name__ == '__main__':
+    app.run(port=5002)

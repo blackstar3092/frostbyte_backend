@@ -1,5 +1,7 @@
+# location.py
 from flask import Blueprint, request, jsonify
-from model import Location, db  # Assuming Location and db are imported from the appropriate module
+from db import db  # Import db from db.py file
+from model.locationmodel import Location  # Import the Location model from the model module
 
 # Define your blueprint for handling location-related requests
 location_api = Blueprint('location', __name__)
@@ -26,7 +28,7 @@ def save_location():
 @location_api.route('/api/get-locations', methods=['GET'])
 def get_locations():
     # Query the database for all locations
-    locations = Location.query.all()
+    locations = Location.query.all()  # Make sure to query from Location model
     locations_list = [{"id": loc.id, "lat": loc.lat, "lng": loc.lng} for loc in locations]
 
     return jsonify({"locations": locations_list}), 200
