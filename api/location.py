@@ -1,40 +1,31 @@
-import json
 from flask import Blueprint, request, jsonify
-import pdb  
 
-location_bp = Blueprint('location', __name__)
+# Define your blueprint for handling location-related requests
+location_api = Blueprint('location', __name__)
 
-def read_locations():
-    try:
-        with open('locations.json', 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return []
-
-def write_locations(locations):
-    with open('locations.json', 'w') as f:
-        json.dump(locations, f)
-
-locations = read_locations()
-
-@location_bp.route('/api/save-location', methods=['POST'])
+# Route to save a location (POST request)
+@location_api.route('/api/save-location', methods=['POST'])
 def save_location():
-    pdb.set_trace()  
+    # Get the latitude and longitude from the request data
     data = request.get_json()
-
     lat = data.get('lat')
     lng = data.get('lng')
 
     if lat is None or lng is None:
-        return jsonify({"error": "Invalid data"}), 400
+        return jsonify({"error": "Invalid data, lat and lng are required"}), 400
 
-    locations.append({"lat": lat, "lng": lng})
-    write_locations(locations)  
+    # Create a new Location object and add it to the database
+    new_location = Location(lat=lat, lng=lng)
+    db.session.add(new_location)
+    db.session.commit()
 
-    pdb.set_trace()  
     return jsonify({"message": "Location saved successfully!"}), 200
 
-@location_bp.route('/api/get-locations', methods=['GET'])
+# Route to get all locations (GET request)
+@location_api.route('/api/get-locations', methods=['GET'])
 def get_locations():
-    pdb.set_trace() 
-    return jsonify({"locations": locations}), 200
+    # Query the database for all locations
+    locations = Location.query.all()
+    locations_list = [{"id": loc.id, "lat": loc.lat, "lng": loc.lng} for loc in locations]
+
+    return jsonify({"locations": locations_list}), 200
