@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_restful import Api, Resource
 from __init__ import app
 from __init__ import db
+from model.analytics import Analytics
 
 # Define a Blueprint for the analytics API
 analytics_blueprint = Blueprint('analytics', __name__, url_prefix='/api')
@@ -28,7 +29,7 @@ class AnalyticsAPI:
                     park_id=data['park_id'],
                     user_id=data['user_id'],
                     stars=data['stars'],
-                    review_text=data['review_text']
+                    review_text=data['review_text'],
                 )
                 analytics.create()
                 return jsonify(analytics.read()), 201
@@ -79,7 +80,7 @@ class AnalyticsAPI:
                         stars=data['stars'],
                         review_text=data['review_text']
                     )
-                    analytics.create()
+                    analytics.create() 
                     results['success'] += 1
                 except Exception as e:
                     results['errors'].append({'data': data, 'error': str(e)})

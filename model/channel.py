@@ -25,6 +25,8 @@ class Channel(db.Model):
 
     posts = db.relationship('Post', backref='channel', lazy=True)
     channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name\
+    channel_analytics = db.relationship('Analytics', back_populates='channel', lazy=True)  # Use unique name\
+
 
     def __init__(self, name, group_id, attributes=None):
         """
