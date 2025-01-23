@@ -30,9 +30,6 @@ class Post(db.Model):
     _content = db.Column(JSON, nullable=False)
     _user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id', ondelete='SET NULL'), nullable=True)
     _channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=False, default=1)  # Replace 1 with a valid default ID
-
-
-    ratings = relationship('Rating', back_populates='post_reference', lazy=True)
     
     def __init__(self, title, comment, user_id=None, channel_id=None, content={}, user_name=None, channel_name=None):
         """
