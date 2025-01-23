@@ -9,7 +9,6 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from model.gemini import AIMessage
 
-
 # Define Flask Blueprint and API
 gemini_api = Blueprint('gemini_api', __name__, url_prefix='/api')
 api = Api(gemini_api)
@@ -17,27 +16,62 @@ api = Api(gemini_api)
 # Load environment variables
 load_dotenv()
 
-# Initialize the Generative AI client
-genai.api_key = os.getenv("API_KEY")
+# Configure the Google Generative AI client
+genai.configure(api_key=os.getenv("API_KEY"))
 
+# Define model configuration
+generation_config = {
+    "temperature": 1.0,
+    "top_p": 1,
+    "top_k": 50,
+    "max_output_tokens": 1000,
+    "response_mime_type": "text/plain",
+}
+# Define system instruction for the chatbot
+system_instruction = (
+    "You are an AI expert specializing in camping advice. You have the knowledge of park rangers and survival specialists. "
+    "You are knowledgeable about camping in national parks, especially in tundras, deserts, valleys, mountains, and forests. "
+    "You provide expert guidance on the best camping gear and brands, strategies for sourcing food in the wild, essential survival skills, and practical tips and tricks for a safe and enjoyable outdoor experience. "
+    "Maintain a friendly and supportive tone suitable for campers of all levels. "
+    "Inform the users about the best camping brands and cheaper alternatives. "
+    "Your responses are short, concise, and easy to understand. "
+    "You DO NOT give responses longer than 4 sentences."
+)
+# Create the model
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    generation_config=generation_config,
+    system_instruction=system_instruction,
+)
 
 class Chatbot(Resource):
+    MAX_HISTORY = 50  # Maximum history length
 
     def __init__(self):
         self.history = []
+        self.chat_session = model.start_chat(history=self.history)  # Persistent session
 
     def generate_ai_response(self, user_input):
         """Generates a response from the Google Generative AI model."""
         try:
-            response = genai.chat(
-                messages=[{"role": "user", "content": user_input}],
-                temperature=0.7,
-                max_tokens=100
-            )
-            return response["messages"][0]["content"]
+            response = self.chat_session.send_message(user_input)
+            return response.text.rstrip("\n")
         except Exception as e:
             print(f"Error generating AI response: {str(e)}")
             return "Sorry, I couldn't process that."
+
+    def update_history(self, role: str, message: str):
+        """Update the conversation history and save messages to the database."""
+        if len(self.history) >= self.MAX_HISTORY:
+            self.history.pop(0)  # Maintain a maximum history length
+        self.history.append({"role": role, "parts": [message]})
+
+        ai_message = AIMessage(
+            message=message,
+            author=role,
+            category="response" if role == "assistant" else "user"
+        )
+        ai_message.create()
 
     def post(self):
         """Handles POST requests to send a message and get a response."""
@@ -47,7 +81,6 @@ class Chatbot(Resource):
                 return jsonify({"error": "Invalid JSON"}), 400
 
             user_input = data.get("user_input")
-
             if not user_input:
                 return jsonify({"error": "User input is required"}), 400
 
@@ -111,19 +144,9 @@ class Chatbot(Resource):
             db.session.delete(message)
             db.session.commit()
 
-            # Return a 204 No Content to indicate successful deletion
-            return '', 204
+            return '', 204  # Return a 204 No Content to indicate successful deletion
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-
-    def update_history(self, role: str, message: str):
-        """Update the conversation history and save messages to the database."""
-        ai_message = AIMessage(
-            message=message,
-            author=role,
-            category="response" if role == "assistant" else "user"
-        )
-        ai_message.create()
 
 
 # Add Chatbot resource to the API
