@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash
 import shutil
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import cross_origin
 
 # import "objects" from "this" project
 from __init__ import app, db, login_manager  # Key Flask objects 
@@ -152,6 +153,31 @@ def reset_password(user_id):
     if user.update({"password": app.config['DEFAULT_PASSWORD']}):
         return jsonify({'message': 'Password reset successfully'}), 200
     return jsonify({'error': 'Password reset failed'}), 500
+
+
+@app.route('/api/rating', methods=['POST'])
+@login_required
+def add_rating():
+    try:
+        # Get input data
+        data = request.get_json()
+        stars = data.get("stars")
+        user_id = data.get("user_id")
+        channel_id = data.get("channel_id")
+
+        # Validate input
+        if stars is None or not (1 <= stars <= 5):
+            return jsonify({"message": "Invalid number of stars"}), 400
+        if not user_id:
+            return jsonify({"message": "User ID is required"}), 400
+
+        # Create and save the rating
+        rating = Rating(stars=stars, user_id=user_id, channel_id=channel_id)
+        rating.create()
+
+        return jsonify({"message": "Rating added successfully", "rating": rating.read()}), 201
+    except Exception as e:
+        return jsonify({"message": "An error occurred", "error": str(e)}), 500
 
 # Create an AppGroup for custom commands
 custom_cli = AppGroup('custom', help='Custom commands')
