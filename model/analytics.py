@@ -3,57 +3,64 @@ from datetime import datetime
 from sqlalchemy.orm import relationship
 from model.post import Post
 from __init__ import db
+from api.jwt_authorize import token_required
 
 class Analytics(db.Model):
     __tablename__ = 'analytics'
 
-    id = db.Column(db.Integer, primary_key=True)  # Primary key for the analytics table
-    park_id = db.Column(db.String(50), nullable=False)  # ID of the park being analyzed
-    stars = db.Column(db.Float, nullable=False)  # Average star rating
-    total_reviews = db.Column(db.Integer, nullable=False)  # Total number of reviews
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Timestamp for creation
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)  # Timestamp for updates
+    id = db.Column(db.Integer, primary_key=True)
+    channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('frostbytes.id'), nullable=False)    
+    stars = db.Column(db.Float, nullable=False)
+    review_text = db.Column(db.Text, nullable=False)  # Add this
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
+    user = relationship('Frostbyte')
+    channel = relationship('Channel', back_populates='channel_analytics')
 
-    def __init__(self, park_id, stars, total_reviews):
-        """
-        Initialize the Analytics model with the given data.
-        """
-        self.park_id = park_id
+    __table_args__ = (db.UniqueConstraint('user_id', 'channel_id', name='unique_user_channel_rating'),)
+
+    def __init__(self, channel_id, user_id, stars, review_text):
+        self.channel_id = channel_id
+        self.user_id = user_id
         self.stars = stars
-        self.total_reviews = total_reviews
+        self.review_text = review_text
+
 
     def create(self):
-        """
-        Save the analytics entry to the database.
-        """
         db.session.add(self)
         db.session.commit()
 
     def read(self):
-        """
-        Serialize the model data into a dictionary for JSON serialization.
-        """
+       
         return {
             'id': self.id,
-            'park_id': self.park_id,
+            'channel_id': self.channel_id,
             'stars': self.stars,
-            'total_reviews': self.total_reviews,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
     def update(self):
-        """
-        Commit changes to the database for the current instance.
-        """
+       
+        db.session.add(self)
         db.session.commit()
 
     def delete(self):
-        """
-        Delete the analytics entry from the database.
-        """
+       
         db.session.delete(self)
         db.session.commit()
         
 
+def initAnalytics():
+        from model.analytics import Analytics
+        sample_analytics = [
+            {"id": 1, "channel_id": 1, "stars": 5},
+            {"id": 2, "channel_id": 2, "stars": 3},
+            {"id": 3, "channel_id": 3, "stars": 4},
+        ]
+        for data in sample_analytics:
+            analytics = Analytics(id=data["id"], channel_id=data["channel_id"], stars=data["stars"])
+            db.session.add(analytics)
+        db.session.commit()
