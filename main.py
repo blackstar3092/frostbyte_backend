@@ -31,6 +31,7 @@ from api.analytics import analytics_blueprint
 from api.weather import weather_api
 from api.star import star_api
 from api.location import location_api
+from api.camping import camping_api
 
 # database Initialization functions
 #from model.user import User, initUsers
@@ -61,6 +62,7 @@ app.register_blueprint(about_api)
 app.register_blueprint(weather_api)
 app.register_blueprint(star_api)
 app.register_blueprint(location_api)
+app.register_blueprint(camping_api) 
 
 # Tell Flask-Login the view function name of your login route
 login_manager.login_view = "login"

@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-from __init__ import db
 from sqlite3 import IntegrityError
 from sqlalchemy import Text, JSON
 from sqlalchemy.exc import IntegrityError
