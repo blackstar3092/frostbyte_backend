@@ -18,7 +18,7 @@ General Process outline:
 1. Old data extraction.  An API has been created in the old project ...
   - Extract Data: retrieves data from the specified tables in the old database.
   - Transform Data: the API to JSON format understood by the new project.
-2. New schema.  The schema is created in "this" new database.
+2. New schema.  The schema is created in "this" new database.yy
 3. Load Data: The bulk load API in "this" project inserts the data using required business logic.
 
 """
