@@ -1,4 +1,3 @@
-# channel.py
 from sqlite3 import IntegrityError
 from sqlalchemy import Text, JSON
 from __init__ import app, db
@@ -12,21 +11,26 @@ class Channel(db.Model):
     
     Attributes:
         id (db.Column): The primary key, an integer representing the unique identifier for the channel.
-        _name (db.Column): A string representing the name of the channel.
-        _attributes (db.Column): A JSON blob representing customizable attributes for the channel.
-        _group_id (db.Column): An integer representing the group to which the channel belongs.
+        name (db.Column): A string representing the name of the channel.
+        attributes (db.Column): A JSON blob representing customizable attributes for the channel.
+        group_id (db.Column): An integer representing the group to which the channel belongs.
     """
     __tablename__ = 'channels'
 
     id = db.Column(db.Integer, primary_key=True)
-    _name = db.Column(db.String(255), nullable=False)
-    _attributes = db.Column(JSON, nullable=True)
-    _group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)  # Changed _name to name
+    attributes = db.Column(JSON, nullable=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
 
     posts = db.relationship('Post', backref='channel', lazy=True)
+<<<<<<< HEAD
     channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name\
     channel_analytics = db.relationship('Analytics', back_populates='channel', lazy=True)  # Use unique name\
 
+=======
+    channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name
+    channel_locations = db.relationship('Location', back_populates='channel', lazy=True)  # Use unique name
+>>>>>>> 7951c0b (fixingmyapi)
 
     def __init__(self, name, group_id, attributes=None):
         """
@@ -37,9 +41,9 @@ class Channel(db.Model):
             group_id (int): The group to which the channel belongs.
             attributes (dict, optional): Customizable attributes for the channel. Defaults to None.
         """
-        self._name = name
-        self._group_id = group_id
-        self._attributes = attributes or {}
+        self.name = name  # Changed _name to name
+        self.group_id = group_id
+        self.attributes = attributes or {}
 
     def __repr__(self):
         """
@@ -49,7 +53,7 @@ class Channel(db.Model):
         Returns:
             str: A text representation of how to create the object.
         """
-        return f"Channel(id={self.id}, name={self._name}, group_id={self._group_id}, attributes={self._attributes})"
+        return f"Channel(id={self.id}, name={self.name}, group_id={self.group_id}, attributes={self.attributes})"
     
     @property
     def name(self):
@@ -59,7 +63,7 @@ class Channel(db.Model):
         Returns:
             str: The channel's name.
         """
-        return self._name
+        return self.name  # No need for getter, you already use name directly in class
 
     def create(self):
         """
@@ -87,9 +91,9 @@ class Channel(db.Model):
         """
         return {
             'id': self.id,
-            'name': self._name,
-            'attributes': self._attributes,
-            'group_id': self._group_id
+            'name': self.name,  # Changed _name to name
+            'attributes': self.attributes,
+            'group_id': self.group_id
         }
         
     def update(self, inputs):
@@ -110,9 +114,9 @@ class Channel(db.Model):
 
         # Update table with new data
         if name:
-            self._name = name
+            self.name = name  # Changed _name to name
         if group_id:
-            self._group_id = group_id
+            self.group_id = group_id
 
         try:
             db.session.commit()
@@ -125,9 +129,9 @@ class Channel(db.Model):
     def restore(data):
         channels = {}
         for channel_data in data:
-            _ = channel_data.pop('id', None)  # Remove 'id' from channel_data
+            channel_data.pop('id', None)  # Remove 'id' from channel_data
             name = channel_data.get("name", None)
-            channel = Channel.query.filter_by(_name=name).first()
+            channel = Channel.query.filter_by(name=name).first()  # Changed _name to name
             if channel:
                 channel.update(channel_data)
             else:
@@ -154,8 +158,8 @@ def initChannels():
         """Tester data for table"""
 
         # Home Page Channels
-        general = Group.query.filter_by(_name='General').first()
-        support = Group.query.filter_by(_name='Support').first()
+        general = Group.query.filter_by(name='General').first()  # Changed _name to name
+        support = Group.query.filter_by(name='Support').first()  # Changed _name to name
         home_page_channels = [
             Channel(name='Announcements', group_id=general.id),
             Channel(name='Events', group_id=general.id),
@@ -163,8 +167,8 @@ def initChannels():
             Channel(name='Help Desk', group_id=support.id)
         ]
 
-        camping = Group.query.filter_by(_name='Camping').first() 
-        national_parks = Group.query.filter_by(_name='National Parks').first() 
+        camping = Group.query.filter_by(name='Camping').first()  # Changed _name to name
+        national_parks = Group.query.filter_by(name='National Parks').first()  # Changed _name to name
         frostbyte_channels = [
             Channel(name='Tundra', group_id=camping.id),
             Channel(name='Forest', group_id=camping.id),
