@@ -24,6 +24,7 @@ class Channel(db.Model):
 
     posts = db.relationship('Post', backref='channel', lazy=True)
 <<<<<<< HEAD
+<<<<<<< HEAD
     channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name\
     channel_analytics = db.relationship('Analytics', back_populates='channel', lazy=True)  # Use unique name\
 
@@ -31,6 +32,10 @@ class Channel(db.Model):
     channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name
     channel_locations = db.relationship('Location', back_populates='channel', lazy=True)  # Use unique name
 >>>>>>> 7951c0b (fixingmyapi)
+=======
+    channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name
+    channel_locations = db.relationship('Location', back_populates='channel', lazy=True)  # Use unique name
+>>>>>>> 5745310 (api fixing)
 
     def __init__(self, name, group_id, attributes=None):
         """

@@ -197,6 +197,14 @@ def generate_data():
     initRatings()
     initAIMessage()
     initCampingPosts()
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    initAnalytics()
+=======
+    initLocation()
+>>>>>>> 7951c0b (fixingmyapi)
+>>>>>>> 5745310 (api fixing)
     
 # Backup the old database
 def backup_database(db_uri, backup_uri):
