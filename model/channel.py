@@ -23,19 +23,8 @@ class Channel(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
 
     posts = db.relationship('Post', backref='channel', lazy=True)
-<<<<<<< HEAD
-<<<<<<< HEAD
-    channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name\
-    channel_analytics = db.relationship('Analytics', back_populates='channel', lazy=True)  # Use unique name\
-
-=======
     channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name
     channel_locations = db.relationship('Location', back_populates='channel', lazy=True)  # Use unique name
->>>>>>> 7951c0b (fixingmyapi)
-=======
-    channel_ratings = db.relationship('Rating', back_populates='channel', lazy=True)  # Use unique name
-    channel_locations = db.relationship('Location', back_populates='channel', lazy=True)  # Use unique name
->>>>>>> 5745310 (api fixing)
 
     def __init__(self, name, group_id, attributes=None):
         """
@@ -68,7 +57,11 @@ class Channel(db.Model):
         Returns:
             str: The channel's name.
         """
-        return self.name  # No need for getter, you already use name directly in class
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     def create(self):
         """
