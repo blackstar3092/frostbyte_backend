@@ -176,7 +176,7 @@ class CampingAPI:
 
     class _FILTER(Resource):
         @token_required()
-        def campingPost(self):
+        def Post(self):
             """
             Retrieve all posts by channel ID and user ID.
             """
