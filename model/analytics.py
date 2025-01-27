@@ -16,7 +16,6 @@ class Analytics(db.Model):
     user = relationship('Frostbyte')
     channel = relationship('Channel', back_populates='channel_analytics')
 
-    __table_args__ = (db.UniqueConstraint('user_id', 'channel_id', name='unique_user_channel_analytics'),)
 
     def __init__(self, channel_id, user_id, stars):
         self.channel_id = channel_id
@@ -29,14 +28,13 @@ class Analytics(db.Model):
         db.session.commit()
 
     def read(self):
-       
         return {
-            'id': self.id,
-            'channel_id': self.channel_id,
-            "user_id": self.user_id,
-            'stars': self.stars,
+            'id': int(self.id),  # Explicitly converting to JSON-serializable types
+            'channel_id': int(self.channel_id) if self.channel_id else None,
+            'user_id': int(self.user_id),
+            'stars': int(self.stars),
         }
-
+        
     def update(self):
        
         db.session.add(self)

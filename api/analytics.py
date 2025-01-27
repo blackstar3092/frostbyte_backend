@@ -19,36 +19,35 @@ class AnalyticsAPI:
             data = request.get_json()
 
             # Validate input
-            required_fields = ['park_id', 'user_id', 'stars', 'review_text']
+            required_fields = ['channel_id', 'user_id', 'stars']
             if not all(field in data for field in required_fields):
                 return {'message': 'Missing required fields'}, 400
 
             # Create and save a new analytics entry
             try:
                 analytics = Analytics(
-                    park_id=data['park_id'],
+                    channel_id=data['channel_id'],
                     user_id=data['user_id'],
-                    stars=data['stars'],
-                    review_text=data['review_text'],
+                    stars=data['stars']
                 )
                 analytics.create()
-                return jsonify(analytics.read()), 201
+                return analytics.read(), 201
             except Exception as e:
                 return {'message': f'An error occurred: {str(e)}'}, 500
 
         def get(self):
             """
-            Retrieve analytics filtered by park_id.
+            Retrieve analytics filtered by channel_id.
             """
-            park_id = request.args.get('park_id')
+            channel_id = request.args.get('channel_id')
 
-            if not park_id:
-                return {'message': 'park_id parameter is required'}, 400
+            if not channel_id:
+                return {'message': 'channel_id parameter is required'}, 400
 
             try:
-                analytics_list = Analytics.query.filter_by(park_id=park_id).all()
+                analytics_list = Analytics.query.filter_by(channel_id=channel_id).all()
                 if not analytics_list:
-                    return {'message': 'No analytics found for the given park_id'}, 404
+                    return {'message': 'No analytics found for the given channel_id'}, 404
 
                 return jsonify([entry.read() for entry in analytics_list]), 200
             except Exception as e:
@@ -69,16 +68,15 @@ class AnalyticsAPI:
             for data in data_list:
                 try:
                     # Validate input
-                    required_fields = ['park_id', 'user_id', 'stars', 'review_text']
+                    required_fields = ['channel_id', 'user_id', 'stars']
                     if not all(field in data for field in required_fields):
                         raise ValueError('Missing required fields')
 
                     # Create and save analytics entry
                     analytics = Analytics(
-                        park_id=data['park_id'],
+                        channel_id=data['channel_id'],
                         user_id=data['user_id'],
                         stars=data['stars'],
-                        review_text=data['review_text']
                     )
                     analytics.create() 
                     results['success'] += 1
@@ -95,11 +93,11 @@ class AnalyticsAPI:
             try:
                 analytics_summary = (
                     db.session.query(
-                        Analytics.park_id,
+                        Analytics.channel_id,
                         db.func.avg(Analytics.stars).label('stars'),
                         db.func.count(Analytics.id).label('total_reviews')
                     )
-                    .group_by(Analytics.park_id)
+                    .group_by(Analytics.channel_id)
                     .all()
                 )
 
@@ -108,7 +106,7 @@ class AnalyticsAPI:
 
                 return jsonify([
                     {
-                        "park_id": entry.park_id,
+                        "channel_id": entry.channel_id,
                         "stars": round(entry.stars, 1),
                         "total_reviews": entry.total_reviews
                     }
