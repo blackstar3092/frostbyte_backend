@@ -135,7 +135,7 @@ class CampingAPI:
             return jsonify(json_ready)
 
     class _BULK_CRUD(Resource):
-        def campingPost(self):
+        def Post(self):
             """
             Handle bulk post creation by sending POST requests to the single post endpoint.
             """
