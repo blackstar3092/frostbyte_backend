@@ -45,7 +45,7 @@ from model.rating import Rating, initRatings
 from model.analytics import Analytics, initAnalytics
 from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.gemini import AIMessage, initAIMessage
-from model.camping_post import campingPost, initCampingPosts
+from model.camping_post import camping, initCampingPosts
 from model.locationmodel import Location, initLocation
 
 # register URIs for api endpoints

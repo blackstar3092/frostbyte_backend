@@ -4,8 +4,9 @@ from flask_restful import Api, Resource  # used for REST API building
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.camping_post import campingPost
+from model.camping_post import camping
 from model.channel import Channel
+
 
 """
 This Blueprint object is used to define APIs for the Post model.
@@ -51,15 +52,13 @@ class CampingAPI:
                 return {'message': 'Post comment is required'}, 400
             if 'channel_id' not in data:
                 return {'message': 'Channel ID is required'}, 400
-            if 'content' not in data:
-                data['content'] = {}
 
             # Create a new post object using the data from the request
-            post = campingPost(data['title'], data['comment'], current_user.id, data['channel_id'])
+            campingPost = camping(data['title'], data['comment'], current_user.id, data['channel_id'])
             # Save the post object using the Object Relational Mapper (ORM) method defined in the model
-            post.create()
+            campingPost.create()
             # Return response to the client in JSON format, converting Python dictionaries to JSON format
-            return jsonify(post.read())
+            return jsonify(campingPost.read())
 
         @token_required()
         def get(self):
@@ -73,11 +72,11 @@ class CampingAPI:
             if 'id' not in data:
                 return {'message': 'Post ID not found'}, 400
             # Find the post to read
-            post = campingPost.query.get(data['id'])
-            if post is None:
+            campingPost = camping.query.get(data['id'])
+            if campingPost is None:
                 return {'message': 'Post not found'}, 404
             # Convert Python object to JSON format 
-            json_ready = post.read()
+            json_ready = campingPost.read()
             # Return a JSON restful response to the client
             return jsonify(json_ready)
 
@@ -91,17 +90,16 @@ class CampingAPI:
             # Obtain the request data
             data = request.get_json()
             # Find the current post from the database table(s)
-            post = campingPost.query.get(data['id'])
-            if post is None:
+            campingPost = camping.query.get(data['id'])
+            if campingPost is None:
                 return {'message': 'Post not found'}, 404
             # Update the post
-            post._title = data['title']
-            post._content = data['content']
-            post._channel_id = data['channel_id']
+            campingPost._title = data['title']
+            campingPost._channel_id = data['channel_id']
             # Save the post
-            post.update()
+            campingPost.update()
             # Return response
-            return jsonify(post.read())
+            return jsonify(campingPost.read())
 
         @token_required()
         def delete(self):
@@ -113,11 +111,11 @@ class CampingAPI:
             # Obtain the request data
             data = request.get_json()
             # Find the current post from the database table(s)
-            post = campingPost.query.get(data['id'])
-            if post is None:
+            campingPost = camping.query.get(data['id'])
+            if campingPost is None:
                 return {'message': 'Post not found'}, 404
             # Delete the post using the ORM method defined in the model
-            post.delete()
+            campingPost.delete()
             # Return response
             return jsonify({"message": "Post deleted"})
 
@@ -130,28 +128,28 @@ class CampingAPI:
             # Obtain the current user
             current_user = g.current_user
             # Find all the posts by the current user
-            posts = campingPost.query.filter(campingPost._user_id == current_user.id).all()
+            campingPosts = camping.query.filter(camping._user_id == current_user.id).all()
             # Prepare a JSON list of all the posts, using list comprehension
-            json_ready = [post.read() for post in posts]
+            json_ready = [campingPost.read() for campingPost in campingPosts]
             # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
     class _BULK_CRUD(Resource):
-        def post(self):
+        def campingPost(self):
             """
             Handle bulk post creation by sending POST requests to the single post endpoint.
             """
-            posts = request.get_json()
+            campingPosts = request.get_json()
 
-            if not isinstance(posts, list):
+            if not isinstance(campingPosts, list):
                 return {'message': 'Expected a list of post data'}, 400
 
             results = {'errors': [], 'success_count': 0, 'error_count': 0}
 
             with current_app.test_client() as client:
-                for post in posts:
+                for campingPost in campingPosts:
                     # Simulate a POST request to the single post creation endpoint
-                    response = client.post('/api/post', json=post)
+                    response = client.post('/api/campingPost', json=campingPost)
 
                     if response.status_code == 200:
                         results['success_count'] += 1
@@ -167,18 +165,18 @@ class CampingAPI:
             Retrieve all posts.
             """
             # Find all the posts
-            posts = campingPost.query.all()
+            campingPosts = camping.query.all()
             # Prepare a JSON list of all the posts, using list comprehension
             json_ready = []
-            for post in posts:
-                post_data = post.read()
-                json_ready.append(post_data)
+            for campingPost in campingPosts:
+                campingPost_data = campingPost.read()
+                json_ready.append(campingPost_data)
             # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
     class _FILTER(Resource):
         @token_required()
-        def post(self):
+        def campingPost(self):
             """
             Retrieve all posts by channel ID and user ID.
             """
@@ -190,9 +188,9 @@ class CampingAPI:
                 return {'message': 'Channel ID not found'}, 400
             
             # Find all posts by channel ID and user ID
-            posts = campingPost.query.filter_by(_channel_id=data['channel_id']).all()
+            campingPosts = camping.query.filter_by(_channel_id=data['channel_id']).all()
             # Prepare a JSON list of all the posts, using list comprehension
-            json_ready = [post.read() for post in posts]
+            json_ready = [campingPost.read() for campingPost in campingPosts]
             # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
@@ -204,7 +202,7 @@ class CampingAPI:
     - The _BULK_CRUD class defines the bulk operations for the API.
     - The _FILTER class defines the endpoints for filtering posts by channel ID and user ID.
     """
-    api.add_resource(_CRUD, '/camping')
-    api.add_resource(_USER, '/camping/user')
-    api.add_resource(_BULK_CRUD, '/campings')
-    api.add_resource(_FILTER, '/campings/filter')
+    api.add_resource(_CRUD, '/campingPost')
+    api.add_resource(_USER, '/campingPost/user')
+    api.add_resource(_BULK_CRUD, '/campingPosts')
+    api.add_resource(_FILTER, '/campingPosts/filter')
