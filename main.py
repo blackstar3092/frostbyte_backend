@@ -24,7 +24,6 @@ from api.group import group_api
 from api.section import section_api
 from api.gemini import gemini_api
 from api.student import student_api
-from api.points import points_api
 from api.vote import vote_api
 from api.about import about_api
 from api.analytics import analytics_blueprint
@@ -32,6 +31,7 @@ from api.weather import weather_api
 from api.star import star_api
 from api.location import location_api
 from api.camping import camping_api
+from api.quiz_api import quiz_api
 
 # database Initialization functions
 #from model.user import User, initUsers
@@ -47,7 +47,7 @@ from model.frostbyte import Frostbyte, initFrostbyte, find_by_uid
 from model.gemini import AIMessage, initAIMessage
 from model.camping_post import camping, initCampingPosts
 from model.locationmodel import Location, initLocation
-
+from model.quiz_result import QuizResult, initQuizResults
 # register URIs for api endpoints
 app.register_blueprint(user_api)
 app.register_blueprint(pfp_api) 
@@ -58,12 +58,12 @@ app.register_blueprint(section_api)
 app.register_blueprint(vote_api)
 app.register_blueprint(gemini_api)
 app.register_blueprint(student_api)
-app.register_blueprint(points_api)
 app.register_blueprint(about_api)
 app.register_blueprint(weather_api)
 app.register_blueprint(star_api)
 app.register_blueprint(location_api)
 app.register_blueprint(camping_api) 
+app.register_blueprint(quiz_api)
 
 # Tell Flask-Login the view function name of your login route
 login_manager.login_view = "login"
@@ -92,6 +92,7 @@ def login():
     error = None
     next_page = request.args.get('next', '') or request.form.get('next', '')
     if request.method == 'POST':
+
         user = Frostbyte.query.filter_by(_uid=request.form['username']).first()
         if user and user.is_password(request.form['password']):
             login_user(user)

@@ -4,7 +4,7 @@ from flask_restful import Api, Resource
 from datetime import datetime
 from __init__ import app
 from api.jwt_authorize import token_required
-from model.quiz_score import QuizScore
+from model.quiz_result import QuizScore
 
 # Define the Blueprint for the Quiz API
 points_api = Blueprint('points_api', __name__, url_prefix='/api')
