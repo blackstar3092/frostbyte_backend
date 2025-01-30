@@ -72,6 +72,7 @@ class Chatbot(Resource):
             category="response" if role == "assistant" else "user"
         )
         ai_message.create()
+        return ai_message.id  # Return the ID of the created message
 
     def post(self):
         """Handles POST requests to send a message and get a response."""
@@ -84,14 +85,24 @@ class Chatbot(Resource):
             if not user_input:
                 return jsonify({"error": "User input is required"}), 400
 
+            # Save the user's message to the database and get its ID
+            user_message = AIMessage(message=user_input, author="user", category="user_message")
+            db.session.add(user_message)
+            db.session.commit()
+            user_message_id = user_message.id  # Get the auto-generated ID
+
             # Generate AI response using Google Generative AI
             response_text = self.generate_ai_response(user_input)
 
-            # Save user input and AI response to history and database
-            self.update_history("user", user_input)
-            self.update_history("assistant", response_text)
+            # Save the AI's response to the database and get its ID
+            ai_message = AIMessage(message=response_text, author="assistant", category="ai_response")
+            db.session.add(ai_message)
+            db.session.commit()
+            ai_message_id = ai_message.id  # Get the auto-generated ID
 
             return jsonify({
+                "user_message_id": user_message_id,  # ID of the user's message
+                "ai_message_id": ai_message_id,  # ID of the AI's response
                 "user_input": user_input,
                 "model_response": response_text
             })
@@ -147,7 +158,6 @@ class Chatbot(Resource):
             return '', 204  # Return a 204 No Content to indicate successful deletion
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-
 
 # Add Chatbot resource to the API
 api.add_resource(Chatbot, '/chatbot')
