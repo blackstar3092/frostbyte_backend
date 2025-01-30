@@ -12,6 +12,10 @@ import shutil
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import cross_origin
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 # import "objects" from "this" project
 from __init__ import app, db, login_manager  # Key Flask objects 

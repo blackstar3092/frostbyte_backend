@@ -12,7 +12,7 @@ api = Api(quiz_api)
 
 class QuizAPI:
     class _CRUD(Resource):
-        @token_required()
+       
         def post(self):
             """Submit quiz points, assign a national park, and store the results."""
             current_user = g.current_user
@@ -55,7 +55,7 @@ class QuizAPI:
             else:
                 return "Unknown Park"  # Fallback for unexpected scores
 
-        @token_required()
+    
         def get(self):
             """Retrieve a user's quiz results."""
             current_user = g.current_user
@@ -66,7 +66,7 @@ class QuizAPI:
 
             return jsonify([result.read() for result in quiz_results])
 
-        @token_required()
+
         def put(self):
             """Update a user's quiz results."""
             current_user = g.current_user
@@ -82,7 +82,7 @@ class QuizAPI:
             quiz_result.update(assigned_park=data.get('assigned_park'))
             return jsonify(quiz_result.read())
 
-        @token_required()
+
         def delete(self):
             """Delete a user's quiz results."""
             current_user = g.current_user
