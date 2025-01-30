@@ -107,6 +107,7 @@ def initCampingPosts():
         campingPosts = [
             camping(title='Cool Experience', comment='aquatic camping was new and fun', user_id=1, channel_id=7),
             camping(title='My next trip', comment='thinking of camping at the desert next', user_id=1, channel_id=8),
+            camping(title='So fun!', comment='great times', user_id=1, channel_id=5),
         ]
         
         for campingPost in campingPosts:
