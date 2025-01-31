@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 
 class camping(db.Model):
 
-    __tablename__ = 'campingPosts'
+    __tablename__ = 'camping_posts'
 
     id = db.Column(db.Integer, primary_key=True)
     _title = db.Column(db.String(255), nullable=False)
@@ -104,13 +104,13 @@ def initCampingPosts():
         """Create database and tables"""
         db.create_all()
         """Tester data for table"""
-        campingPosts = [
+        camping_posts = [
             camping(title='Cool Experience', comment='aquatic camping was new and fun', user_id=1, channel_id=7),
             camping(title='My next trip', comment='thinking of camping at the desert next', user_id=1, channel_id=8),
             camping(title='So fun!', comment='great times', user_id=1, channel_id=5),
         ]
         
-        for campingPost in campingPosts:
+        for campingPost in camping_posts:
             try:
                 campingPost.create()
                 print(f"Record created: {repr(campingPost)}")

@@ -114,9 +114,9 @@ class CampingAPI:
                 return {'message': 'Channel ID not found'}, 400
             
             # Find all posts by channel ID and user ID
-            campingPosts = camping.query.filter_by(_channel_id=data['channel_id']).all()
+            camping_posts = camping.query.filter_by(_channel_id=data['channel_id']).all()
             # Prepare a JSON list of all the posts, using list comprehension
-            json_ready = [campingPost.read() for campingPost in campingPosts]
+            json_ready = [campingPost.read() for campingPost in camping_posts]
             # Return a JSON list, converting Python dictionaries to JSON format
             return jsonify(json_ready)
 
