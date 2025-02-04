@@ -55,7 +55,7 @@ pip install -r requirements.txt
     - Shourd be ./venv/bin/python
 
   - From Extensions Marketplace install `SQLite3 Editor`
-    - Open and view SQL database file `instance/volumes/user_management.db`
+    - Open and view SQL database file `instance/volumes/frostbyte_data.db`
 
   - Make a local `.env` file in root of project to contain your secret passwords
 
@@ -75,15 +75,15 @@ pip install -r requirements.txt
 
   - Explore newly created SQL database
     - Navigate too instance/volumes
-    - View/open `user_management.db`
-    - Loook at `Users` table in viewer
+    - View/open `frostbyte_data.db`
+    - Loook at `Frostbyte` table in viewer
 
   - Run the Project
     - Select/open `main.py` in VSCode
     - Start with Play button
       - Play button sub option contains Debug
     - Click on loop back address in terminal to launch
-      - Output window will contain page to launch http://127.0.0.1:8087
+      - Output window will contain page to launch http://127.0.0.1:8102
     - Login using your secrets
 - Google AI dependencies:
   - pip install google.generativeai
