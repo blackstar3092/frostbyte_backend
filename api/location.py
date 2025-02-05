@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, g
 from flask_restful import Api, Resource
 from datetime import datetime
 from __init__ import app
+from api.jwt_authorize import token_required
 from model.locationmodel import Location
 
 # Define the Blueprint for the Location API
@@ -17,6 +18,7 @@ class LocationAPI:
     """
 
     class _CRUD(Resource):
+        @token_required()
         def post(self):
             """
             Store or update the user's location.
@@ -45,6 +47,7 @@ class LocationAPI:
             new_location.create()
             return jsonify(new_location.read())
 
+        @token_required()
         def get(self):
             """
             Retrieve the user's last known location.
