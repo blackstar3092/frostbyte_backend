@@ -45,7 +45,7 @@ model = genai.GenerativeModel(
 )
 
 class Chatbot(Resource):
-    MAX_HISTORY = 50  # Maximum history length
+    @token_required()
 
     def __init__(self):
         self.history = []
