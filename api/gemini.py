@@ -45,8 +45,6 @@ model = genai.GenerativeModel(
 )
 
 class Chatbot(Resource):
-    @token_required()
-
     def __init__(self):
         self.history = []
         self.chat_session = model.start_chat(history=self.history)  # Persistent session
@@ -55,10 +53,11 @@ class Chatbot(Resource):
         """Generates a response from the Google Generative AI model."""
         try:
             response = self.chat_session.send_message(user_input)
-            return response.text.rstrip("\n")
+            return response.text.rstrip("\n") if response.text else "Sorry, I couldn't process that."
         except Exception as e:
             print(f"Error generating AI response: {str(e)}")
             return "Sorry, I couldn't process that."
+
 
     def update_history(self, role: str, message: str):
         """Update the conversation history and save messages to the database."""
@@ -73,7 +72,8 @@ class Chatbot(Resource):
         )
         ai_message.create()
         return ai_message.id  # Return the ID of the created message
-
+    
+    
     def post(self):
         """Handles POST requests to send a message and get a response."""
         try:
