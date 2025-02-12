@@ -135,6 +135,34 @@ def u2table():
     users = Frostbyte.query.all()
     return render_template("u2table.html", user_data=users)
 
+
+@app.route('/posts')
+@login_required
+def posts():
+    # Query all posts from the database
+    post_data = Post.query.all()
+    return render_template("posts.html", post_data=post_data)
+
+
+@app.route('/analytics')
+@login_required
+def analytics():
+    # Example of fetching analytics data (modify based on your model)
+    analytics_data = {
+        "total_users": Frostbyte.query.count(),
+        "total_posts": Post.query.count(),
+        "most_active_user": Frostbyte.query.order_by(Frostbyte.activity.desc()).first().name,
+        "top_channel": Channel.query.order_by(Channel.popularity.desc()).first().name
+    }
+    return render_template("analytics.html", analytics_data=analytics_data)
+
+
+@app.route('/ratings')
+@login_required
+def ratings():
+    ratings_data = Rating.query.all()
+    return render_template("ratings.html", ratings_data=ratings_data)
+
 # Helper function to extract uploads for a user (ie PFP image)
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
