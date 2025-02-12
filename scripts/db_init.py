@@ -12,6 +12,7 @@ Goto the scripts directory:
 
 Or run from the root of the project:
 > scripts/db_migrate.py
+y
 
 General Process outline:
 0. Warning to the user.

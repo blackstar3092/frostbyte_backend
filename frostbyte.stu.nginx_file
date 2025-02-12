@@ -1,10 +1,10 @@
-  server {
-      listen 80;
-      listen [::]:80;
-      server_name frostbyte.stu.nighthawkcodingsociety.com;
+server {
+        listen 80;
+        listen [::]:80;
+        server_name frostbyte.stu.nighthawkcodingsociety.com;
 
-      location / {
-          proxy_pass http://localhost:8102;
+        location / {
+            proxy_pass http://localhost:8102;
 
           # Preflighted requests
           if ($request_method = OPTIONS) {
