@@ -507,7 +507,18 @@ def initFrostbyte():
         u1 = Frostbyte(name='Thomas Edison', uid=app.config['ADMIN_USER'], password=app.config['ADMIN_PASSWORD'], pfp='toby.png', car='toby_car.png', role="Admin")
         u2 = Frostbyte(name='Grace Hopper', uid=app.config['DEFAULT_USER'], password=app.config['DEFAULT_PASSWORD'], pfp='hop.png')
         u3 = Frostbyte(name='Nicholas Tesla', uid='niko', password='123niko', pfp='niko.png' )
-        users = [u1, u2, u3]
+        u4 = Frostbyte(name='Albert Einstein', uid='alby', password='123alby', pfp='alby.png' )
+        u5 = Frostbyte(name='Isaac Newton', uid='newt', password='123newt', pfp='newt.png' )
+        u6 = Frostbyte(name='Marie Curie', uid='cures', password='123cures', pfp='curie.png' )
+        u7 = Frostbyte(name='Risha Guha', uid='risha', password='123Risha!', pfp='risha.png' )
+        u8 = Frostbyte(name='Aranya Bhattacharya', uid='aranya', password='123Aranya!', pfp='aranya.png' )
+        u9 = Frostbyte(name='Abby Manalo', uid='abby', password='123Abby!', pfp='abby.png' )
+        u10 = Frostbyte(name='Elliot Yang', uid='elliot', password='123Elliot!', pfp='elliot.png' )
+        u11 = Frostbyte(name='Shriya Paladugu', uid='shriya', password='123Shriya!', pfp='shriya.png' )
+        u12 = Frostbyte(name='Ava Shalon', uid='ava', password='123Elliot!', pfp='ava.png' )
+
+
+        users = [u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12]
 
         for user in users:
             try:
