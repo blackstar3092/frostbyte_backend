@@ -66,19 +66,22 @@ This HTML is setup as as a Jinja2 layout, coders use layouts for:
 
 {% block background %}
     <script src="{{ url_for('static', filename='js/three.r119.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vanta.birds.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vanta.topology.min.js') }}"></script>
     <script>
-        VANTA.BIRDS({
+        VANTA.TOPOLOGY({
             el: "#body_background",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
+            mouseControls: true, 
+            touchControls: false, 
+            gyroControls: false, 
+            minHeight: 200.00, 
             minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00
-        })
+            scale: 1.00, 
+            scaleMobile: 1.00,
+            backgroundColor: 0x2222,  // Dark background
+            color: 0x89964e,  // Cool blue/purple lines
+        });
     </script>
 {% endblock %}
+
 
 </html>
