@@ -1,0 +1,74 @@
+{% extends "layouts/base.html" %}
+
+{% block body %}
+
+<div class="container mt-5">
+    <h1>Site Analytics & Reports</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <table class="table table-striped" id="analyticsTable">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total Users</td>
+                        <td>{{ analytics_data.total_users }}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Posts</td>
+                        <td>{{ analytics_data.total_posts }}</td>
+                    </tr>
+                    <tr>
+                        <td>Most Active User</td>
+                        <td>{{ analytics_data.most_active_user }}</td>
+                    </tr>
+                    <tr>
+                        <td>Top Channel</td>
+                        <td>{{ analytics_data.top_channel }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <canvas id="analyticsChart"></canvas>
+        </div>
+    </div>
+
+    {% if current_user.role == 'Admin' %}
+    <script>
+        $(document).ready(function() {
+            $("#analyticsTable").DataTable(); // Initialize DataTable
+
+            // Fetch analytics data for the chart
+            fetch("/api/analytics")
+            .then(response => response.json())
+            .then(data => {
+                var ctx = document.getElementById('analyticsChart').getContext('2d');
+                var analyticsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Users', 'Posts', 'Comments'],
+                        datasets: [{
+                            label: 'Site Activity',
+                            data: [data.total_users, data.total_posts, data.total_comments],
+                            backgroundColor: ['blue', 'green', 'red']
+                        }]
+                    }
+                });
+            })
+            .catch(error => console.error('Error loading analytics data:', error));
+        });
+    </script>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block background %}
+{% endblock %}
