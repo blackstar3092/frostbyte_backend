@@ -139,37 +139,9 @@ def u2table():
 @app.route('/posts')
 @login_required
 def posts():
-    # Query all regular posts from Post table
+    # Query all posts from the database
     post_data = Post.query.all()
-
-    # Query all camping posts from CampingPost table
-    camping_data = camping.query.all()
-
-    # Format the data with a source marker
-    all_posts = []
-
-    for post in post_data:
-        all_posts.append({
-            "id": post.id,
-            "title": post._title,
-            "comment": post._comment,
-            "channel_id": post._channel_id,
-            "user_id": post._user_id,
-            "source": "National Park Post"  # Label regular posts
-        })
-
-    for camping_post in camping_data:
-        all_posts.append({
-            "id": camping_post.id,
-            "title": camping_post.title,
-            "comment": camping_post.comment,
-            "channel_id": camping_post.channel_id,
-            "user_id": camping_post.user_id,
-            "source": "Camping Post"  # Label camping posts
-        })
-
-    return render_template("posts.html", post_data=all_posts)
-
+    return render_template("posts.html", post_data=post_data)
 
 
 @app.route('/analytics')
