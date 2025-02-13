@@ -60,14 +60,19 @@ class QuizAPI:
 
         @token_required()
         def get(self):
-            """Retrieve a user's quiz results."""
+            """Retrieve the latest assigned park for the authenticated user."""
             current_user = g.current_user
-            quiz_results = QuizResult.query.filter_by(user_id=current_user.id).all()
 
-            if not quiz_results:
-                return {'message': 'No quiz results found for this user'}, 404
+            # Find the most recent quiz result for the user
+            quiz_result = QuizResult.query.filter_by(user_id=current_user.id).order_by(QuizResult.id.desc()).first()
 
-            return jsonify([result.read() for result in quiz_results])
+            if not quiz_result:
+                return jsonify({"assigned_park": "Take Quiz"}), 404  # Return "Take Quiz" if no results exist
+
+            return jsonify({
+                "assigned_park": quiz_result.assigned_park
+            })
+
 
         @token_required()
         def put(self):
@@ -94,22 +99,18 @@ class QuizAPI:
 
         @token_required()
         def delete(self):
-            """Delete a user's quiz results."""
+            """Delete the most recent quiz result for a user based on user_id."""
             current_user = g.current_user
-            data = request.get_json()
 
-            # Validate input
-            if not data or 'id' not in data:
-                return {'message': 'Missing quiz result ID'}, 400
+            # Find the most recent quiz result for the user
+            quiz_result = QuizResult.query.filter_by(user_id=current_user.id).order_by(QuizResult.id.desc()).first()
 
-            # Find the quiz result
-            quiz_result = QuizResult.query.filter_by(id=data['id'], user_id=current_user.id).first()
             if not quiz_result:
-                return {'message': 'Quiz result not found'}, 404
+                return {'message': 'No quiz results found for this user'}, 404
 
-            # Delete the quiz result
+            # Delete the most recent quiz result
             quiz_result.delete()
-            return {'message': 'Quiz result deleted successfully'}, 200
+            return {'message': 'Latest quiz result deleted successfully'}, 200
 
 # Map resources to endpoints
 api.add_resource(QuizAPI._CRUD, '/')
