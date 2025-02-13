@@ -12,7 +12,6 @@
                 <th>Comment</th>
                 <th>Channel ID</th>
                 <th>Author ID</th>
-                <th>Post Type</th>  <!-- New Column -->
                 {% if current_user.role == 'Admin' %}
                 <th>Actions</th>
                 {% endif %}
@@ -22,20 +21,13 @@
             {% for post in post_data %}
             <tr>
                 <td>{{ post.id }}</td>
-                <td>{{ post.title }}</td>
-                <td>{{ post.comment[:50] }}...</td> <!-- Show only first 50 characters -->
-                <td>{{ post.channel_id }}</td>
-                <td>{{ post.user_id }}</td>
-                <td>
-                    {% if post.source == "Camping Post" %}
-                        <span class="badge bg-success">{{ post.source }}</span>
-                    {% else %}
-                        <span class="badge bg-primary">{{ post.source }}</span>
-                    {% endif %}
-                </td>
+                <td>{{ post._title }}</td>
+                <td>{{ post._comment[:50] }}...</td> <!-- Show only first 50 characters -->
+                <td>{{ post._channel_id }}</td>
+                <td>{{ post._user_id }}</td>
                 {% if current_user.role == 'Admin' %}
                 <td>
-                    <button class="btn btn-warning edit-btn" data-id="{{ post.id }}" data-title="{{ post.title }}" data-comment="{{ post.comment }}" data-channel="{{ post.channel_id }}">Edit</button>
+                    <button class="btn btn-warning edit-btn" data-id="{{ post.id }}" data-title="{{ post._title }}" data-comment="{{ post._comment }}" data-channel="{{ post._channel_id }}">Edit</button>
                     <button class="btn btn-danger delete-btn" data-id="{{ post.id }}">Delete</button>
                 </td>                
                 {% endif %}
