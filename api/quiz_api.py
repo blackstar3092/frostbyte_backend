@@ -47,7 +47,7 @@ class QuizAPI:
 
         def assign_national_park(self, total_points):
             """Assign a national park based on the total points."""
-            if 70 <= total_points <= 130:
+            if 0 <= total_points <= 130:
                 return "Denali National Park"
             elif 140 <= total_points <= 170:
                 return "Grand Canyon National Park"
