@@ -163,6 +163,28 @@ def ratings():
     ratings_data = Rating.query.all()
     return render_template("ratings.html", ratings_data=ratings_data)
 
+
+@app.route('/chatbot-messages')
+@login_required
+def chatbot_messages():
+    # Query all AI messages from the database
+    messages_data = AIMessage.query.all()
+
+    # Convert messages to a format suitable for Jinja template rendering
+    formatted_messages = [
+        {
+            "id": msg.id,
+            "message": msg.message,
+            "timestamp": msg.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            "author": msg.author,
+            "category": msg.category
+        }
+        for msg in messages_data
+    ]
+
+    return render_template("chatbot_messages.html", messages_data=formatted_messages)
+
+
 # Helper function to extract uploads for a user (ie PFP image)
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
