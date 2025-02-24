@@ -2,6 +2,7 @@ import requests
 from flask import Blueprint, request, jsonify
 from flask_restful import Api, Resource
 from api.jwt_authorize import token_required
+from model.weather import Weather  # Correct import for Weather and Park models
 
 # This Blueprint object is used to define APIs for the weather service.
 weather_api = Blueprint('weather_api', __name__, url_prefix='/api/weather')
