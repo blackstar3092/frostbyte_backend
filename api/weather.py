@@ -1,99 +1,71 @@
-from flask import Blueprint, request, jsonify
-from flask_restful import Api, Resource
 import requests
+from flask import Blueprint, request, jsonify, g
+from flask_restful import Api, Resource
+from datetime import datetime
+from __init__ import app
+from api.jwt_authorize import token_required
 
-# Create a blueprint for the weather API
-weather_api = Blueprint('weather_api', __name__, url_prefix='/api')
-# Create an Api object and associate it with the Blueprint
+# This Blueprint object is used to define APIs for the weather service.
+weather_api = Blueprint('weather_api', __name__, url_prefix='/api/weather')
+
+# The Api object is connected to the Blueprint object to define the API endpoints.
 api = Api(weather_api)
 
-# Open-Meteo API base URL
-OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/forecast"
+# Weather API setup
+API_KEY = '9bb9d39671474da4b83164647252402'
+BASE_URL = 'http://api.weatherapi.com/v1/current.json'
 
-class Weather(Resource):
-    """
-    Weather API to fetch current weather and forecast details for a given location.
-    """
+# Locations dictionary for predefined places
+LOCATIONS = {
+    "grand-canyon": {"lat": 36.1069, "lon": -112.1129},
+    "denali": {"lat": 63.4348, "lon": -148.2670},
+    "redwood": {"lat": 41.2132, "lon": -124.0046},
+    "buck-reef": {"lat": 29.6074, "lon": -81.3886}  # Example coordinates
+}
 
-    @staticmethod
-    def get_coordinates(location):
-        """
-        Mock function to return hardcoded latitude and longitude for a location.
-        Replace this with a geocoding API for real-world scenarios.
-        """
-        location_coords = {
-            "San Diego": (32.7157, -117.1611),
-            "Los Angeles": (34.0522, -118.2437),
-            "New York": (40.7128, -74.0060),
-            "Denver": (39.7392, -104.9903),
+@token_required()
+def fetch_weather(lat, lon):
+    """Fetch weather information from the weatherapi.com"""
+    response = requests.get(BASE_URL, params={
+        'key': API_KEY,
+        'q': f'{lat},{lon}',
+        'aqi': 'no'
+    })
+
+    if response.status_code == 200:
+        data = response.json()
+        return {
+            'temperature': data['current']['temp_c'],
+            'description': data['current']['condition']['text'],
+            'humidity': data['current']['humidity'],
+            'pressure': data['current']['pressure_mb']
         }
-        return location_coords.get(location, None)
+    return None
 
-    def get(self):
-        """
-        Fetch weather data based on location.
-        Request query parameters:
-        - location: The name of the location (e.g., San Diego).
-        - type: 'current' for current weather, 'forecast' for multi-day forecast.
-        """
-        try:
-            # Extract query parameters
-            location = request.args.get('location', 'San Diego')  # Default to San Diego
-            weather_type = request.args.get('type', 'forecast').lower()  # Default to forecast
+class WeatherAPI(Resource):
+    """Weather API resource class"""
+    @token_required()
+    def get(self, location):
+        """Fetch weather for a specific location."""
+        location = location.lower()
 
-            # Validate location
-            if not location:
-                return jsonify({"error": "Location is required."}), 400
+        if location not in LOCATIONS:
+            return jsonify({"error": "Location not found."}), 404
 
-            # Get coordinates for the location
-            coordinates = self.get_coordinates(location)
-            if not coordinates:
-                return jsonify({"error": f"Location '{location}' not found. Please use a valid location."}), 404
+        lat, lon = LOCATIONS[location]["lat"], LOCATIONS[location]["lon"]
+        weather_data = fetch_weather(lat, lon)
 
-            latitude, longitude = coordinates
+        if weather_data:
+            return jsonify({
+                "location": location.replace("-", " ").title(),
+                "temperature": weather_data["temperature"],
+                "description": weather_data["description"],
+                "humidity": weather_data["humidity"],
+                "pressure": weather_data["pressure"]
+            })
 
-            # Prepare Open-Meteo API request parameters
-            params = {
-                "latitude": latitude,
-                "longitude": longitude,
-                "current_weather": True,
-                "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode",
-                "timezone": "auto",
-            }
+        return jsonify({"error": "Unable to fetch weather data."}), 500
 
-            # Make the API request
-            response = requests.get(OPEN_METEO_BASE_URL, params=params)
+# Add the WeatherAPI resource to the API with the dynamic location parameter.
+api.add_resource(WeatherAPI, '/<string:location>')
 
-            if response.status_code != 200:
-                return jsonify({"error": "Failed to fetch weather data."}), response.status_code
-
-            weather_data = response.json()
-
-            # Process and return data based on the type requested
-            if weather_type == 'current':
-                current_weather = weather_data.get("current_weather", {})
-                return jsonify({
-                    "location": location,
-                    "latitude": latitude,
-                    "longitude": longitude,
-                    "current_weather": current_weather
-                })
-            elif weather_type == 'forecast':
-                daily_forecast = weather_data.get("daily", {})
-                return jsonify({
-                    "location": location,
-                    "latitude": latitude,
-                    "longitude": longitude,
-                    "daily_forecast": daily_forecast
-                })
-            else:
-                return jsonify({"error": "Invalid type. Use 'current' or 'forecast'."}), 400
-
-        except Exception as e:
-            import traceback
-            print(f"Error occurred: {str(e)}")
-            traceback.print_exc()  # Log the full traceback
-            return jsonify({"error": "An unexpected error occurred.", "details": str(e)}), 500
-
-# Add the resource to the API
-api.add_resource(Weather, '/weather')
