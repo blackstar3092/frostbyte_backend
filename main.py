@@ -36,6 +36,7 @@ from api.star import star_api
 from api.camping import camping_api
 from api.quiz_api import quiz_api
 from api.location import location_api  
+from api.checklist import checklist_api 
 
 # database Initialization functions
 #from model.user import User, initUsers
@@ -52,6 +53,9 @@ from model.gemini import AIMessage, initAIMessage
 from model.camping_post import camping, initCampingPosts
 from model.quiz_result import QuizResult, initQuizResults
 from model.locationmodel import Location, initLocations
+from model.checklist import ChecklistItem, initChecklist
+
+
 
 # register URIs for api endpoints
 app.register_blueprint(user_api)
@@ -69,6 +73,9 @@ app.register_blueprint(star_api)
 app.register_blueprint(location_api)
 app.register_blueprint(camping_api) 
 app.register_blueprint(quiz_api)
+app.register_blueprint(checklist_api)
+
+
 
 # Tell Flask-Login the view function name of your login route
 login_manager.login_view = "login"
@@ -254,6 +261,10 @@ def generate_data():
     initAIMessage()
     initCampingPosts()
     initLocations()
+    initAnalytics()
+    initChecklist()
+    
+    
 # Backup the old database
 def backup_database(db_uri, backup_uri):
     """Backup the current database."""
