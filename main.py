@@ -53,7 +53,7 @@ from model.gemini import AIMessage, initAIMessage
 from model.camping_post import camping, initCampingPosts
 from model.quiz_result import QuizResult, initQuizResults
 from model.locationmodel import Location, initLocations
-from model.checklist import ChecklistItem, initChecklist
+
 
 
 
@@ -73,7 +73,7 @@ app.register_blueprint(star_api)
 app.register_blueprint(location_api)
 app.register_blueprint(camping_api) 
 app.register_blueprint(quiz_api)
-app.register_blueprint(checklist_api)
+
 
 
 
@@ -262,7 +262,6 @@ def generate_data():
     initCampingPosts()
     initLocations()
     initAnalytics()
-    initChecklist()
     
     
 # Backup the old database
