@@ -1,6 +1,10 @@
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy.orm import relationship
+#from model.post import Post
 from __init__ import db
+from api.jwt_authorize import token_required
+
 
 
 class ChecklistItem(db.Model):

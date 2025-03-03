@@ -29,7 +29,8 @@ class ChecklistAPI:
             db.session.commit()
 
 
-            return jsonify(new_item.read()), 201
+            return new_item.read(), 201
+
 
 
         @token_required()
@@ -37,7 +38,8 @@ class ChecklistAPI:
             """Retrieve all checklist items for the user."""
             current_user = g.current_user
             items = ChecklistItem.query.filter_by(user_id=current_user.id).all()
-            return jsonify([item.read() for item in items]), 200
+            return [item.read() for item in items], 200
+
 
 
         @token_required()
