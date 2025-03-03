@@ -4,6 +4,8 @@ from flask_restful import Api, Resource
 from __init__ import db
 from api.jwt_authorize import token_required
 from model.checklist import ChecklistItem  
+from model.channel import Channel
+from model.frostbyte import Frostbyte
 
 
 # Blueprint for Checklist API
