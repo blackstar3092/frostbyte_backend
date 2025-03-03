@@ -31,7 +31,6 @@ from api.student import student_api
 from api.vote import vote_api
 from api.about import about_api
 from api.analytics import analytics_blueprint
-from api.weather import weather_api
 from api.star import star_api
 from api.camping import camping_api
 from api.quiz_api import quiz_api
@@ -53,6 +52,7 @@ from model.gemini import AIMessage, initAIMessage
 from model.camping_post import camping, initCampingPosts
 from model.quiz_result import QuizResult, initQuizResults
 from model.locationmodel import Location, initLocations
+from model.checklist import ChecklistItem, initChecklist
 
 
 
@@ -68,11 +68,11 @@ app.register_blueprint(vote_api)
 app.register_blueprint(gemini_api)
 app.register_blueprint(student_api)
 app.register_blueprint(about_api)
-app.register_blueprint(weather_api)
 app.register_blueprint(star_api)
 app.register_blueprint(location_api)
 app.register_blueprint(camping_api) 
 app.register_blueprint(quiz_api)
+app.register_blueprint(checklist_api)
 
 
 
@@ -262,6 +262,7 @@ def generate_data():
     initCampingPosts()
     initLocations()
     initAnalytics()
+    initChecklist()
     
     
 # Backup the old database
